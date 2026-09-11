@@ -1,0 +1,208 @@
+{% extends "base.html" %} {% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+  <!-- En-tête de bienvenue -->
+  <div
+    class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg"
+  >
+    <h1 class="text-2xl font-bold">Bonjour !</h1>
+    <p class="text-blue-100 text-sm mt-1">
+      Gère tes ingrédients et suis tes objectifs nutritionnels au même endroit.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Profil Nutritionnel -->
+    <div
+      class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm card-hover flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <span></span> Mon Profil Nutritionnel
+          </h2>
+          {% if profile %}
+          <span
+            class="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full"
+            >Actif</span
+          >
+          {% endif %}
+        </div>
+
+        {% if profile %}
+        <div class="bg-gray-50 p-4 rounded-xl mb-4 text-center">
+          <span class="text-3xl font-extrabold text-blue-600"
+            >{{ profile.target_calories }}</span
+          >
+          <span class="text-gray-500 font-medium text-sm"> kcal / jour</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+          <div class="bg-red-50 p-2 rounded-lg border border-red-100">
+            <span class="block text-red-600 font-bold text-sm"
+              >{{ profile.protein_g }}g</span
+            >
+            <span class="text-gray-500">Protéines</span>
+          </div>
+          <div class="bg-amber-50 p-2 rounded-lg border border-amber-100">
+            <span class="block text-amber-600 font-bold text-sm"
+              >{{ profile.carbs_g }}g</span
+            >
+            <span class="text-gray-500">Glucides</span>
+          </div>
+          <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+            <span class="block text-emerald-600 font-bold text-sm"
+              >{{ profile.fat_g }}g</span
+            >
+            <span class="text-gray-500">Lipides</span>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-6">
+          <p class="text-gray-400 text-sm mb-4">
+            Aucune donnée nutritionnelle renseignée.
+          </p>
+          <a
+            href="/profile-page"
+            class="inline-flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium text-sm px-4 py-2 rounded-xl transition"
+          >
+            Remplir mon profil
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Mon Frigo -->
+    <div
+      class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm card-hover"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <span></span> Mon Frigo
+        </h2>
+        <span class="text-xs text-gray-400">Séparés par des virgules</span>
+      </div>
+
+      <!-- Liste dynamique sous forme de badges -->
+      <!-- Liste dynamique des badges avec bouton de suppression -->
+    <div id="ingredients-tags" 
+        data-ingredients='{{ (ingredients if ingredients else [])|tojson|safe }}' 
+        class="flex flex-wrap gap-2 mb-4">
+        {% if ingredients %}
+            {% for item in ingredients %}
+                <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
+                    {{ item }}
+                    <button type="button" onclick="removeIngredient('{{ item }}')" class="hover:text-red-600 focus:outline-none ml-1 font-bold">×</button>
+                </span>
+            {% endfor %}
+        {% else %}
+            <p class="text-xs text-gray-400 italic">Ton frigo est vide pour l'instant.</p>
+        {% endif %}
+    </div>
+
+      <form id="fridge-form" class="space-y-4">
+        <div>
+          <input
+            type="text"
+            id="ingredients-input"
+            value=""
+            placeholder="ex: chicken, tomato, rice"
+            class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 transition"
+            />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-sm"
+        >
+          Mettre à jour le frigo
+        </button>
+      </form>
+
+      <p id="fridge-status" class="text-xs text-center mt-3 hidden"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Récupération propre de la liste via l'attribut data-*
+const tagsDiv = document.getElementById('ingredients-tags');
+let currentIngredients = JSON.parse(tagsDiv.dataset.ingredients || '[]');
+
+// Fonction centralisée pour générer les badges avec le bouton de suppression (×)
+function renderTags() {
+    if (currentIngredients.length === 0) {
+        tagsDiv.innerHTML = `<p class="text-xs text-gray-400 italic">Ton frigo est vide pour l'instant.</p>`;
+        return;
+    }
+    tagsDiv.innerHTML = currentIngredients.map(i => 
+        `<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
+            ${i}
+            <button type="button" onclick="removeIngredient('${i}')" class="hover:text-red-600 focus:outline-none ml-1 font-bold">×</button>
+        </span>`
+    ).join('');
+}
+
+// Supprimer un ingrédient
+async function removeIngredient(item) {
+    currentIngredients = currentIngredients.filter(i => i.toLowerCase() !== item.toLowerCase());
+    renderTags();
+
+    try {
+        await fetch(`/fridge/${encodeURIComponent(item)}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+    } catch (err) {
+        console.error("Erreur lors de la suppression :", err);
+    }
+}
+
+// Ajouter / Mettre à jour des ingrédients
+document.getElementById('fridge-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusText = document.getElementById('fridge-status');
+    const inputField = document.getElementById('ingredients-input');
+    
+    const rawInput = inputField.value;
+    const newItems = rawInput.split(',').map(i => i.trim()).filter(i => i !== '');
+
+    if (newItems.length === 0) return;
+
+    const updatedIngredients = Array.from(new Set([...currentIngredients, ...newItems]));
+
+    statusText.textContent = "Validation avec l'USDA...";
+    statusText.className = "text-xs text-center mt-3 text-blue-600 font-medium block";
+    statusText.classList.remove('hidden');
+
+    try {
+        const res = await fetch('/fridge', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ ingredients: updatedIngredients })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok) {
+            currentIngredients = data.ingredients || updatedIngredients;
+
+            statusText.textContent = "Contenu du frigo sauvegardé !";
+            statusText.className = "text-xs text-center mt-3 text-emerald-600 font-medium block";
+
+            inputField.value = '';
+            renderTags();
+        } else {
+            throw new Error(data.detail || "Erreur de validation");
+        }
+    } catch (err) {
+        statusText.textContent = `${err.message || "Impossible de sauvegarder."}`;
+        statusText.className = "text-xs text-center mt-3 text-red-600 font-medium block";
+    }
+});
+</script>
+{% endblock %}

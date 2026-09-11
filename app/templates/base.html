@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Fridge & Nutrition Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
+        <a href="/" class="text-xl font-bold">Smart Fridge Coach</a>
+        
+        <nav class="flex items-center gap-4">
+            <a href="/" class="hover:underline">Dashboard</a>
+            <a href="/profile-page" class="hover:underline">Profil</a>
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition">
+                Se déconnecter
+            </button>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+    function logout() {
+        // Suppression du cookie et du token local
+        document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        localStorage.removeItem('access_token');
+
+        // Redirection vers la page de connexion
+        window.location.href = '/login';
+    }
+    </script>
+</body>
+</html>
