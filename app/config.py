@@ -1,13 +1,16 @@
 import os
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
-# Charge les variables définies dans le fichier .env
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-# Clé de chiffrement pour les tokens JWT
-SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key-change-me")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 jour (1440 minutes)
+class Settings(BaseSettings):
+    usda_api_key: str = os.getenv("USDA_API_KEY", "DEMO_KEY")
+    secret_key: str = os.getenv("SECRET_KEY", "super-secret-key-change-me")
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 1440
 
-# Clé API USDA pour la recherche nutritionnelle
-USDA_API_KEY = os.getenv("USDA_API_KEY", "DEMO_KEY")
+    class Config:
+        env_file = ".env"
+
+settings = Settings()

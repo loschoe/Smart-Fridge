@@ -1,23 +1,22 @@
 from fastapi import FastAPI, Request, Depends
-from app.routers.profile_router import router as profile_router
-from app.routers.recipe_router import router as recipe_router
-
-app = FastAPI(title="Smart Fridge & Nutrition Coach")
-
-app.include_router(profile_router)
-app.include_router(recipe_router)
-
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.routers import auth, profile, fridge, suggestions
+from app.routers.profile_router import router as profile_router
+from app.routers.recipe_router import router as recipe_router
 from app.core.deps import get_current_user_optional
 from app.json_store import get_profiles, get_fridges
 
 app = FastAPI(title="Smart Fridge & Nutrition Coach")
 
+# Dynamic Static & Templates setup
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+templates = Jinja2Templates(directory="app/templates")
+
+# Middleware CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,15 +25,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="app/templates")
-
+# Ingestion de tous les routeurs
 app.include_router(auth.router)
 app.include_router(profile.router)
+app.include_router(profile_router)
+app.include_router(recipe_router)
 app.include_router(fridge.router)
 app.include_router(suggestions.router)
 
-# Route dédiée à la page de connexion
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse(request=request, name="login.html")

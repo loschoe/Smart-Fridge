@@ -5,22 +5,17 @@ from app.schemas.ingredient import MealDBRecipe
 from app.schemas.nutrition import MacroBreakdown
 from app.services.usda_client import fetch_usda_nutrients
 from app.services.nutrition_mapper import map_ingredient
-from app.utils.logger import logger   # ← obligatoire
-
+from app.utils.logger import logger
 
 async def aggregate_recipe_macros(recipe: MealDBRecipe, usda_api_key: str) -> Dict[str, Any]:
     logger.debug(f"[AGG] Agrégation pour recette: {recipe.strMeal}")
-    logger.debug(f"[AGG] Ingrédients: {recipe.ingredients}")
 
-    tasks = []
-
-    for ing in recipe.ingredients:
-        mapped_name = map_ingredient(ing.name)
-        logger.debug(f"[AGG] Mapping {ing.name} -> {mapped_name}")
-        tasks.append(fetch_usda_nutrients(usda_api_key, mapped_name))
+    tasks = [
+        fetch_usda_nutrients(usda_api_key, map_ingredient(ing.name))
+        for ing in recipe.ingredients
+    ]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    logger.debug(f"[AGG] Résultats USDA: {results}")
 
     total_energy = 0.0
     total_protein = 0.0
@@ -45,7 +40,7 @@ async def aggregate_recipe_macros(recipe: MealDBRecipe, usda_api_key: str) -> Di
             "name": ing.name,
             "measure": ing.measure,
             "usda_name": res.name,
-            "macros_per_100g": macros.dict()
+            "macros_per_100g": macros.model_dump()
         })
 
     return {
@@ -56,5 +51,5 @@ async def aggregate_recipe_macros(recipe: MealDBRecipe, usda_api_key: str) -> Di
             protein_g=round(total_protein, 2),
             fat_g=round(total_fat, 2),
             carbs_g=round(total_carbs, 2),
-        ).dict()
+        ).model_dump()
     }
