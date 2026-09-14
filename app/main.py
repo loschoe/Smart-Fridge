@@ -13,7 +13,7 @@ from app.json_store import get_profiles, get_fridges
 app = FastAPI(title="Smart Fridge & Nutrition Coach")
 
 # Dynamic Static & Templates setup
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static/css"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Middleware CORS

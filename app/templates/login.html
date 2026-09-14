@@ -34,7 +34,7 @@
         const passwordInput = document.getElementById('password').value.trim();
         const errorDiv = document.getElementById('error-msg');
         errorDiv.classList.add('d-none');
-
+        
         try {
             const res = await fetch(url, {
                 method: 'POST',
@@ -55,12 +55,12 @@
                 if (typeof data.detail === 'string') {
                     message = data.detail;
                 } else if (Array.isArray(data.detail)) {
-                    message = data.detail.map(err => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+                    message = "Veuillez saisir une adresse email valide.";
                 }
                 throw new Error(message);
             }
 
-            document.cookie = `access_token=${data.access_token}; path=/; max-age=86400`;
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
             localStorage.setItem('access_token', data.access_token);
             window.location.href = '/';
 

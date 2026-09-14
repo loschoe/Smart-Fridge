@@ -83,32 +83,67 @@
         <span class="text-xs text-gray-400">Séparés par des virgules</span>
       </div>
 
-      <!-- Liste dynamique sous forme de badges -->
       <!-- Liste dynamique des badges avec bouton de suppression -->
-    <div id="ingredients-tags" 
-        data-ingredients='{{ (ingredients if ingredients else [])|tojson|safe }}' 
-        class="flex flex-wrap gap-2 mb-4">
-        {% if ingredients %}
-            {% for item in ingredients %}
-                <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
-                    {{ item }}
-                    <button type="button" onclick="removeIngredient('{{ item }}')" class="hover:text-red-600 focus:outline-none ml-1 font-bold">×</button>
-                </span>
-            {% endfor %}
-        {% else %}
-            <p class="text-xs text-gray-400 italic">Ton frigo est vide pour l'instant.</p>
-        {% endif %}
-    </div>
+      <div id="ingredients-tags" 
+          data-ingredients='{{ (ingredients if ingredients else [])|tojson|safe }}' 
+          class="flex flex-wrap gap-2 mb-4">
+          {% if ingredients %}
+              {% for item in ingredients %}
+                  <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
+                      {{ item }}
+                      <button type="button" onclick="removeIngredient('{{ item }}')" class="hover:text-red-600 focus:outline-none ml-1 font-bold">×</button>
+                  </span>
+              {% endfor %}
+          {% else %}
+              <p class="text-xs text-gray-400 italic">Ton frigo est vide pour l'instant.</p>
+          {% endif %}
+      </div>
+
+      <!-- Ajouts rapides -->
+      <div class="mb-4">
+        <p class="text-xs font-semibold text-gray-500 mb-2">Ajouts rapides courants :</p>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="quickAdd('poulet')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🍗 Poulet</button>
+          <button type="button" onclick="quickAdd('oeuf')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🥚 Œuf</button>
+          <button type="button" onclick="quickAdd('boeuf')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🥩 Bœuf</button>
+          <button type="button" onclick="quickAdd('beurre')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🧈 Beurre</button>
+          <button type="button" onclick="quickAdd('fromage')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🧀 Fromage</button>
+          <button type="button" onclick="quickAdd('lait')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🥛 Lait</button>
+          <button type="button" onclick="quickAdd('riz')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🍚 Riz</button>
+          <button type="button" onclick="quickAdd('tomate')" class="bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 text-xs px-2.5 py-1 rounded-lg border border-gray-200 transition">+ 🍅 Tomate</button>
+        </div>
+      </div>
 
       <form id="fridge-form" class="space-y-4">
         <div>
           <input
             type="text"
             id="ingredients-input"
+            list="common-ingredients-list"
             value=""
-            placeholder="ex: chicken, tomato, rice"
+            placeholder="ex: poulet, tomate, riz..."
+            autocomplete="off"
             class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 transition"
-            />
+          />
+          <datalist id="common-ingredients-list">
+            <option value="poulet">
+            <option value="oeuf">
+            <option value="boeuf">
+            <option value="porc">
+            <option value="beurre">
+            <option value="fromage">
+            <option value="lait">
+            <option value="riz">
+            <option value="pates">
+            <option value="tomate">
+            <option value="pomme de terre">
+            <option value="oignon">
+            <option value="ail">
+            <option value="carotte">
+            <option value="saumon">
+            <option value="thon">
+            <option value="huile d'olive">
+          </datalist>
         </div>
 
         <button
@@ -131,16 +166,28 @@ let currentIngredients = JSON.parse(tagsDiv.dataset.ingredients || '[]');
 
 // Fonction centralisée pour générer les badges avec le bouton de suppression (×)
 function renderTags() {
+    tagsDiv.dataset.ingredients = JSON.stringify(currentIngredients);
+
     if (currentIngredients.length === 0) {
         tagsDiv.innerHTML = `<p class="text-xs text-gray-400 italic">Ton frigo est vide pour l'instant.</p>`;
         return;
     }
-    tagsDiv.innerHTML = currentIngredients.map(i => 
-        `<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
+    tagsDiv.innerHTML = currentIngredients.map(i => {
+        const escaped = i.replace(/'/g, "\\'");
+        return `<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
             ${i}
-            <button type="button" onclick="removeIngredient('${i}')" class="hover:text-red-600 focus:outline-none ml-1 font-bold">×</button>
-        </span>`
-    ).join('');
+            <button type="button" onclick="removeIngredient('${escaped}')" class="hover:text-red-600 focus:outline-none ml-1 font-bold">×</button>
+        </span>`;
+    }).join('');
+}
+
+// Ajout rapide via les boutons prédéfinis
+async function quickAdd(ingredient) {
+    if (currentIngredients.includes(ingredient)) return;
+    
+    const inputField = document.getElementById('ingredients-input');
+    inputField.value = ingredient;
+    document.getElementById('fridge-form').dispatchEvent(new Event('submit'));
 }
 
 // Supprimer un ingrédient
@@ -165,13 +212,22 @@ document.getElementById('fridge-form').addEventListener('submit', async (e) => {
     const inputField = document.getElementById('ingredients-input');
     
     const rawInput = inputField.value;
-    const newItems = rawInput.split(',').map(i => i.trim()).filter(i => i !== '');
+
+    // Normalisation : remplace les ligatures "œ" par "oe" pour éviter les rejets de l'API backend
+    const normalizedInput = rawInput
+        .replace(/œ/g, 'oe')
+        .replace(/Œ/g, 'Oe');
+
+    const newItems = normalizedInput
+        .split(',')
+        .map(i => i.trim().toLowerCase())
+        .filter(i => i !== '');
 
     if (newItems.length === 0) return;
 
     const updatedIngredients = Array.from(new Set([...currentIngredients, ...newItems]));
 
-    statusText.textContent = "Validation avec l'USDA...";
+    statusText.textContent = "Sauvegarde en cours...";
     statusText.className = "text-xs text-center mt-3 text-blue-600 font-medium block";
     statusText.classList.remove('hidden');
 
@@ -197,7 +253,7 @@ document.getElementById('fridge-form').addEventListener('submit', async (e) => {
             inputField.value = '';
             renderTags();
         } else {
-            throw new Error(data.detail || "Erreur de validation");
+            throw new Error(data.detail || "Erreur de sauvegarde");
         }
     } catch (err) {
         statusText.textContent = `${err.message || "Impossible de sauvegarder."}`;
