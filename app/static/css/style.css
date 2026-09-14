@@ -47,7 +47,7 @@ a {
 
 .dashboard-container {
     max-width: 1024px;
-    margin: 40px auto 20px auto; /* haut 40px, bas 20px */
+    margin: 16px auto 20px auto; /* réduit l'espace sous la navbar */
     padding: 0 20px;
 }
 

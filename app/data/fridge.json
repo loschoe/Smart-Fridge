@@ -14,10 +14,17 @@
   {
     "user_id": "80b75613-f799-4fe0-bbfa-f9481ae4d5e6",
     "ingredients": [
-      "Poulet",
       "tomato",
       "chicken",
-      "beef"
+      "beef",
+      "poulet",
+      "oeuf",
+      "boeuf",
+      "beurre",
+      "fromage",
+      "lait",
+      "tomate",
+      "riz"
     ]
   }
 ]
