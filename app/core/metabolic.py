@@ -1,62 +1,58 @@
-from app.schemas.profile import Profile
+from typing import Dict, Any
 
-# Facteurs d'activité standard
 ACTIVITY_FACTORS = {
     "sedentary": 1.2,
     "light": 1.375,
     "moderate": 1.55,
     "high": 1.725,
-    "athlete": 1.9,
+    "athlete": 1.9
 }
 
-
-def calculate_bmr(profile: Profile) -> float:
-    """
-    Formule de Mifflin-St Jeor
-    """
-    if profile.sex == "male":
-        return 10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5
+def calculate_bmr(weight_kg: float, height_cm: float, age: int, gender: str) -> float:
+    if gender.lower() == "male":
+        return (10 * weight_kg) + (6.25 * height_cm) - (5 * age) + 5
     else:
-        return 10 * profile.weight + 6.25 * profile.height - 5 * profile.age - 161
+        return (10 * weight_kg) + (6.25 * height_cm) - (5 * age) - 161
 
-
-def calculate_tdee(profile: Profile) -> float:
-    bmr = calculate_bmr(profile)
-    factor = ACTIVITY_FACTORS.get(profile.activity_level, 1.2)
+def calculate_tdee(bmr: float, activity_level: str) -> float:
+    factor = ACTIVITY_FACTORS.get(activity_level, 1.2)
     return bmr * factor
 
-
-def apply_goal_delta(tdee: float, goal: str) -> float:
-    """
-    - perte : -500 kcal
-    - maintien : 0
-    - prise : +300 kcal
-    """
+def calculate_target_calories(tdee: float, goal: str) -> float:
     if goal == "loss":
         return tdee - 500
     elif goal == "gain":
         return tdee + 300
     return tdee
 
-
-def compute_metabolic_plan(profile: Profile) -> dict:
-    """
-    Fonction finale utilisée par le backend
-    """
-    bmr = calculate_bmr(profile)
-    tdee = calculate_tdee(profile)
-    target_calories = apply_goal_delta(tdee, profile.goal)
-
-    # Répartition des macronutriments (30% Protéines, 40% Glucides, 30% Lipides)
-    protein_g = (target_calories * 0.30) / 4
-    carbs_g = (target_calories * 0.40) / 4
-    fat_g = (target_calories * 0.30) / 9
-
+def calculate_macros(target_calories: float, weight_kg: float) -> Dict[str, float]:
+    protein_g = round(weight_kg * 2.0, 1)
+    fat_g = round(weight_kg * 1.0, 1)
+    
+    protein_calories = protein_g * 4
+    fat_calories = fat_g * 9
+    remaining_calories = max(0, target_calories - (protein_calories + fat_calories))
+    
+    carbs_g = round(remaining_calories / 4, 1)
+    
     return {
-        "bmr": round(bmr, 2),
-        "tdee": round(tdee, 2),
-        "target_calories": round(target_calories, 2),
-        "protein_g": round(protein_g, 1),
-        "carbs_g": round(carbs_g, 1),
-        "fat_g": round(fat_g, 1),
+        "protein_g": protein_g,
+        "fat_g": fat_g,
+        "carbs_g": carbs_g
+    }
+
+def compute_full_profile(data: Dict[str, Any]) -> Dict[str, Any]:
+    bmr = calculate_bmr(data["weight_kg"], data["height_cm"], data["age"], data["gender"])
+    tdee = calculate_tdee(bmr, data["activity_level"])
+    target_calories = calculate_target_calories(tdee, data["goal"])
+    macros = calculate_macros(target_calories, data["weight_kg"])
+    
+    return {
+        **data,
+        "bmr": round(bmr, 1),
+        "tdee": round(tdee, 1),
+        "target_calories": round(target_calories, 1),
+        "protein_g": macros["protein_g"],
+        "carbs_g": macros["carbs_g"],
+        "fat_g": macros["fat_g"]
     }

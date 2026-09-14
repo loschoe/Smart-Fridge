@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
-
 from app.routers import auth, profile, fridge, suggestions
-from app.routers.profile_router import router as profile_router
+from app.routers.profile import router as profile_router
 from app.routers.recipe_router import router as recipe_router
 from app.core.deps import get_current_user_optional
 from app.json_store import get_profiles, get_fridges
@@ -28,7 +27,6 @@ app.add_middleware(
 # Ingestion de tous les routeurs
 app.include_router(auth.router)
 app.include_router(profile.router)
-app.include_router(profile_router)
 app.include_router(recipe_router)
 app.include_router(fridge.router)
 app.include_router(suggestions.router)

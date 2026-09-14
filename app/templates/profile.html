@@ -1,94 +1,230 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil Nutritionnel</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
 
-{% block content %}
-<div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md mt-6">
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Mon Profil Corporel & Objectifs</h1>
+<body>
+    <div class="dashboard-container narrow">
 
-    {% if profile %}
-    <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
-        <h2 class="text-lg font-semibold text-blue-800 mb-2">Résumé Actuel</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-700">
-            <div><span class="block text-xs text-gray-500">BMR</span> <strong>{{ profile.bmr }} kcal</strong></div>
-            <div><span class="block text-xs text-gray-500">TDEE</span> <strong>{{ profile.tdee }} kcal</strong></div>
-            <div><span class="block text-xs text-gray-500">Cible Calories</span> <strong class="text-blue-600">{{ profile.target_calories }} kcal</strong></div>
-            <div><span class="block text-xs text-gray-500">Macros (P/G/L)</span> <strong>{{ profile.protein_g }}g / {{ profile.carbs_g }}g / {{ profile.fat_g }}g</strong></div>
+        <div class="dashboard-header">
+            <h1>Profil Nutritionnel</h1>
+            <p>Renseigne tes infos pour calculer tes besoins caloriques.</p>
+        </div>
+        <a href="/" class="btn-back">← Retour au Tableau de bord</a>
+        <!-- 🔄 Nouveau layout -->
+        <div class="dashboard-grid">
+
+            <!-- Mes informations -->
+            <div class="dashboard-card">
+
+                <div class="dashboard-card-header">
+                    <h2>Mes informations</h2>
+
+                    {% if profile %}
+                    <span class="profile-status">Actif</span>
+                    {% endif %}
+                </div>
+
+                <form action="/profile/" method="POST">
+
+                    <div class="form-row">
+
+                        <div class="field">
+                            <label for="weight_kg">Poids</label>
+
+                            <div class="input-wrap">
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    id="weight_kg"
+                                    name="weight_kg"
+                                    placeholder="70"
+                                    value="{{ profile.weight_kg if profile else '' }}"
+                                    required
+                                >
+                                <span class="unit">kg</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="height_cm">Taille</label>
+
+                            <div class="input-wrap">
+                                <input
+                                    type="number"
+                                    id="height_cm"
+                                    name="height_cm"
+                                    placeholder="175"
+                                    value="{{ profile.height_cm if profile else '' }}"
+                                    required
+                                >
+                                <span class="unit">cm</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="age">Âge</label>
+
+                            <div class="input-wrap">
+                                <input
+                                    type="number"
+                                    id="age"
+                                    name="age"
+                                    placeholder="30"
+                                    value="{{ profile.age if profile else '' }}"
+                                    required
+                                >
+                                <span class="unit">ans</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="field">
+                        <label for="gender">Genre</label>
+
+                        <select id="gender" name="gender" required>
+                            <option value="" disabled {% if not profile %}selected{% endif %} hidden></option>
+
+                            <option value="male"
+                                {% if profile and profile.gender == 'male' %}selected{% endif %}>
+                                Homme
+                            </option>
+
+                            <option value="female"
+                                {% if profile and profile.gender == 'female' %}selected{% endif %}>
+                                Femme
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="activity_level">Niveau d'activité</label>
+
+                        <select id="activity_level" name="activity_level" required>
+                            <option value="" disabled {% if not profile %}selected{% endif %} hidden></option>
+
+                            <option value="sedentary"
+                                {% if profile and profile.activity_level == 'sedentary' %}selected{% endif %}>
+                                Sédentaire (Peu d'exercice)
+                            </option>
+
+                            <option value="light"
+                                {% if profile and profile.activity_level == 'light' %}selected{% endif %}>
+                                Légèrement actif (1-2 fois/semaine)
+                            </option>
+
+                            <option value="moderate"
+                                {% if profile and profile.activity_level == 'moderate' %}selected{% endif %}>
+                                Modérément actif (3-5 fois/semaine)
+                            </option>
+
+                            <option value="high"
+                                {% if profile and profile.activity_level == 'high' %}selected{% endif %}>
+                                Très actif (5-7 fois/semaine)
+                            </option>
+
+                            <option value="athlete"
+                                {% if profile and profile.activity_level == 'athlete' %}selected{% endif %}>
+                                Athlète
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="goal">Objectif</label>
+
+                        <select id="goal" name="goal" required>
+                            <option value="" disabled {% if not profile %}selected{% endif %} hidden></option>
+
+                            <option value="loss"
+                                {% if profile and profile.goal == 'loss' %}selected{% endif %}>
+                                Perte de poids (-500 kcal)
+                            </option>
+
+                            <option value="maintain"
+                                {% if profile and profile.goal == 'maintain' %}selected{% endif %}>
+                                Maintien du poids
+                            </option>
+
+                            <option value="gain"
+                                {% if profile and profile.goal == 'gain' %}selected{% endif %}>
+                                Prise de masse (+ 300 kcal)
+                            </option>
+                        </select>
+                    </div>
+
+                    <button type="submit">
+                        Enregistrer
+                    </button>
+
+                </form>
+
+            </div>
+
+            {% if profile %}
+
+            <!-- Besoins nutritionnels -->
+            <div class="dashboard-card">
+
+                <div class="dashboard-card-header">
+                    <h2>Vos besoins nutritionnels</h2>
+                </div>
+
+                <div class="calorie-display">
+
+                    <span class="calorie-value">
+                        {{ profile.target_calories }}
+                    </span>
+
+                    <span class="calorie-unit">
+                        kcal / jour
+                    </span>
+
+                    <p class="calorie-sub">
+                        BMR&nbsp;{{ profile.bmr }} kcal ·
+                        TDEE&nbsp;{{ profile.tdee }} kcal
+                    </p>
+
+                </div>
+
+                <div class="macros-grid">
+
+                    <div class="macro-card macro-protein">
+                        <span>{{ profile.protein_g }}g</span>
+                        <small>Protéines</small>
+                    </div>
+
+                    <div class="macro-card macro-carbs">
+                        <span>{{ profile.carbs_g }}g</span>
+                        <small>Glucides</small>
+                    </div>
+
+                    <div class="macro-card macro-fat">
+                        <span>{{ profile.fat_g }}g</span>
+                        <small>Lipides</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% else %}
+
+            <!-- Message si aucun profil -->
+            <div class="dashboard-card profile-empty">
+                <p>
+                    Aucune donnée nutritionnelle renseignée.
+                </p>
+            </div>
+
+            {% endif %}
+
         </div>
     </div>
-    {% endif %}
-
-    <form id="profileForm" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Poids (kg)</label>
-                <input type="number" step="0.1" name="weight_kg" value="{{ profile.weight_kg if profile else '' }}" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Taille (cm)</label>
-                <input type="number" step="0.1" name="height_cm" value="{{ profile.height_cm if profile else '' }}" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Âge</label>
-                <input type="number" name="age" value="{{ profile.age if profile else '' }}" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Sexe</label>
-                <select name="gender" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="male" {% if profile and profile.gender == 'male' %}selected{% endif %}>Homme</option>
-                    <option value="female" {% if profile and profile.gender == 'female' %}selected{% endif %}>Femme</option>
-                </select>
-            </div>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Niveau d'activité physique</label>
-            <select name="activity_level" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                <option value="sedentary" {% if profile and profile.activity_level == 'sedentary' %}selected{% endif %}>Sédentaire (Peu ou pas d'exercice)</option>
-                <option value="light" {% if profile and profile.activity_level == 'light' %}selected{% endif %}>Légèrement actif (1-3 fois/semaine)</option>
-                <option value="moderate" {% if profile and profile.activity_level == 'moderate' %}selected{% endif %}>Modérément actif (3-5 fois/semaine)</option>
-                <option value="high" {% if profile and profile.activity_level == 'high' %}selected{% endif %}>Très actif (6-7 fois/semaine)</option>
-                <option value="athlete" {% if profile and profile.activity_level == 'athlete' %}selected{% endif %}>Extrêmement actif (Athlète)</option>
-            </select>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Objectif</label>
-            <select name="goal" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                <option value="loss" {% if profile and profile.goal == 'loss' %}selected{% endif %}>Perte de poids (-500 kcal)</option>
-                <option value="maintain" {% if profile and profile.goal == 'maintain' %}selected{% endif %}>Maintien du poids</option>
-                <option value="gain" {% if profile and profile.goal == 'gain' %}selected{% endif %}>Prise de masse (+300 kcal)</option>
-            </select>
-        </div>
-
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition">
-            Calculer & Enregistrer
-        </button>
-    </form>
-</div>
-
-<script>
-document.getElementById('profileForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-
-    data.weight_kg = parseFloat(data.weight_kg);
-    data.height_cm = parseFloat(data.height_cm);
-    data.age = parseInt(data.age);
-
-    const res = await fetch('/profile/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-
-    if (res.ok) {
-        window.location.reload();
-    } else {
-        alert("Erreur lors de l'enregistrement du profil.");
-    }
-});
-</script>
-{% endblock %}
+</body>
+</html>
