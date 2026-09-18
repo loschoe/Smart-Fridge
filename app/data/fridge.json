@@ -1,30 +1,9 @@
 [
   {
-    "user_id": "ced5838a-a00e-404d-b979-df85d577ad65",
-    "ingredients": []
-  },
-  {
-    "user_id": "0b6b7338-53a2-449a-93bd-5923501a0da6",
+    "user_id": "6dc70860-9917-42c9-b393-e3175d1e2009",
     "ingredients": [
-      "poulet",
-      "tomate",
-      "riz"
-    ]
-  },
-  {
-    "user_id": "80b75613-f799-4fe0-bbfa-f9481ae4d5e6",
-    "ingredients": [
-      "tomato",
-      "chicken",
-      "beef",
-      "poulet",
       "oeuf",
-      "boeuf",
-      "beurre",
-      "fromage",
-      "lait",
-      "tomate",
-      "riz"
+      "poulet"
     ]
   }
 ]

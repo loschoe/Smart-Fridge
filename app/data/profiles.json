@@ -1,17 +1,17 @@
 [
   {
-    "weight_kg": 72.0,
-    "height_cm": 188.0,
-    "age": 19,
+    "weight_kg": 80.0,
+    "height_cm": 180.0,
+    "age": 18,
     "gender": "male",
     "activity_level": "high",
-    "goal": "maintain",
-    "bmr": 1805.0,
-    "tdee": 3113.6,
-    "target_calories": 3113.6,
-    "protein_g": 144.0,
-    "carbs_g": 472.4,
-    "fat_g": 72.0,
-    "user_id": "80b75613-f799-4fe0-bbfa-f9481ae4d5e6"
+    "goal": "gain",
+    "bmr": 1840.0,
+    "tdee": 3174.0,
+    "target_calories": 3474.0,
+    "protein_g": 160.0,
+    "carbs_g": 528.5,
+    "fat_g": 80.0,
+    "user_id": "6dc70860-9917-42c9-b393-e3175d1e2009"
   }
 ]

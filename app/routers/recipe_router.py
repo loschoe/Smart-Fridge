@@ -1,17 +1,35 @@
-from fastapi import APIRouter
-from app.services.mealdb_client import search_recipes_by_ingredient
-from app.config import settings
+from pathlib import Path
 
-router = APIRouter(prefix="/recipes", tags=["Recipes"])
+from fastapi import APIRouter, Request, HTTPException
+from fastapi.templating import Jinja2Templates
 
-@router.get("/suggestions")
-async def recipe_suggestions(ingredient: str):
-    recipes = await search_recipes_by_ingredient(ingredient)
+from app.core.config import settings
+from app.services.mealdb import fetch_recipe_details
+from app.services.aggregator import aggregate_recipe_macros
 
-    return [
-        {
-            "idMeal": recipe.idMeal,
-            "recipe_name": recipe.strMeal
-        }
-        for recipe in recipes[:5]
-    ]
+
+router = APIRouter(prefix="/recipe", tags=["Recipe Details"])
+
+TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates"
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+
+@router.get("/{recipe_id}")
+async def view_recipe_detail(recipe_id: str, request: Request):
+    recipe_detail = await fetch_recipe_details(recipe_id)
+
+    if not recipe_detail:
+        raise HTTPException(status_code=404, detail="Recette introuvable")
+
+    usda_api_key = settings.usda_api_key
+    aggregated = await aggregate_recipe_macros(recipe_detail, usda_api_key)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="recipe.html",
+        context={
+            "recipe": recipe_detail,
+            "nutrients": aggregated.get("total_macros", {}),
+            "ingredients_used": aggregated.get("ingredients_used", []),
+        },
+    )
