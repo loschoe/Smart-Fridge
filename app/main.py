@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 
+
 from app.routers import auth, profile, fridge, suggestions
 from app.routers.recipe_router import router as recipe_router
 from app.core.deps import get_current_user_optional
@@ -11,7 +12,7 @@ from app.database import supabase
 
 app = FastAPI(title="Smart Fridge & Nutrition Coach")
 
-# StaticFiles & Templates
+# Fichiers statiques et templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
@@ -27,9 +28,9 @@ app.add_middleware(
 # Inclusion des routeurs
 app.include_router(auth.router)
 app.include_router(profile.router)
-app.include_router(recipe_router)
 app.include_router(fridge.router)
 app.include_router(suggestions.router)
+app.include_router(recipe_router)
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
@@ -37,6 +38,7 @@ def login_page(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, user_id: str | None = Depends(get_current_user_optional)):
+    print(f"\n[MAIN DEBUG] Chargement du dashboard pour user_id: {user_id}")
     if not user_id:
         return RedirectResponse(url="/login", status_code=302)
     
