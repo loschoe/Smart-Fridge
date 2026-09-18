@@ -14,11 +14,11 @@
             <form id="auth-form">
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <input type="email" id="email" class="form-control" required>
+                    <input type="email" id="email" class="form-control" required placeholder="nom@exemple.com">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Mot de passe</label>
-                    <input type="password" id="password" class="form-control" required>
+                    <input type="password" id="password" class="form-control" required placeholder="••••••••">
                 </div>
                 <div class="d-grid gap-2">
                     <button type="button" onclick="submitAuth('/auth/login')" class="btn btn-primary">Se connecter</button>
@@ -34,18 +34,26 @@
         const passwordInput = document.getElementById('password').value.trim();
         const errorDiv = document.getElementById('error-msg');
         errorDiv.classList.add('d-none');
+
+        if (!emailInput || !passwordInput) {
+            errorDiv.textContent = "Veuillez remplir tous les champs.";
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+
+        // On envoie les données sous forme de formulaire url-encoded
+        // L'email est transmis dans le champ 'username' attendu par OAuth2PasswordRequestForm
+        const formData = new URLSearchParams();
+        formData.append('username', emailInput);
+        formData.append('password', passwordInput);
         
         try {
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: JSON.stringify({ 
-                    email: emailInput, 
-                    password: passwordInput 
-                })
+                body: formData
             });
 
             const data = await res.json();
@@ -55,13 +63,16 @@
                 if (typeof data.detail === 'string') {
                     message = data.detail;
                 } else if (Array.isArray(data.detail)) {
-                    message = "Veuillez saisir une adresse email valide.";
+                    message = "Veuillez saisir des identifiants valides.";
                 }
                 throw new Error(message);
             }
 
-            document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+            // Enregistrement du token dans les cookies et le localStorage
+            document.cookie = `access_token=Bearer ${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
             localStorage.setItem('access_token', data.access_token);
+            
+            // Redirection vers l'accueil
             window.location.href = '/';
 
         } catch (err) {

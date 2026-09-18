@@ -3,19 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
+
 from app.routers import auth, profile, fridge, suggestions
-from app.routers.profile import router as profile_router
 from app.routers.recipe_router import router as recipe_router
 from app.core.deps import get_current_user_optional
-from app.json_store import get_profiles, get_fridges
+from app.database import supabase
 
 app = FastAPI(title="Smart Fridge & Nutrition Coach")
 
-# Dynamic Static & Templates setup
+# StaticFiles & Templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# Middleware CORS
+# Configuration CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ingestion de tous les routeurs
+# Inclusion des routeurs
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(recipe_router)
@@ -40,12 +40,13 @@ def index(request: Request, user_id: str | None = Depends(get_current_user_optio
     if not user_id:
         return RedirectResponse(url="/login", status_code=302)
     
-    profiles = get_profiles()
-    user_profile = next((p for p in profiles if p.get("user_id") == user_id), None)
+    # Récupération du profil depuis Supabase
+    profile_res = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
+    user_profile = profile_res.data[0] if profile_res.data else None
     
-    fridges = get_fridges()
-    user_fridge = next((f for f in fridges if f.get("user_id") == user_id), None)
-    ingredients = user_fridge.get("ingredients", []) if user_fridge else []
+    # Récupération du frigo depuis Supabase
+    fridge_res = supabase.table("fridge_items").select("ingredient").eq("user_id", user_id).execute()
+    ingredients = [row["ingredient"] for row in fridge_res.data] if fridge_res.data else []
 
     return templates.TemplateResponse(
         request=request, 
@@ -58,8 +59,8 @@ def profile_page(request: Request, user_id: str | None = Depends(get_current_use
     if not user_id:
         return RedirectResponse(url="/login", status_code=302)
     
-    profiles = get_profiles()
-    user_profile = next((p for p in profiles if p.get("user_id") == user_id), None)
+    profile_res = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
+    user_profile = profile_res.data[0] if profile_res.data else None
 
     return templates.TemplateResponse(
         request=request, 

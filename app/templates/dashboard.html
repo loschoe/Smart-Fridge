@@ -77,13 +77,13 @@
 
             <!-- Liste des ingrédients -->
             <div id="ingredients-tags"
-                 data-ingredients='{{ (ingredients if ingredients else [])|tojson|safe }}'
-                 class="ingredients-tags flex flex-wrap gap-2 mb-4">
+                data-ingredients='{{ (ingredients if ingredients else [])|tojson|safe }}'
+                class="ingredients-tags flex flex-wrap gap-2 mb-4">
 
                 {% if ingredients %}
                     {% for item in ingredients %}
                         <span class="ingredient-tag">
-                            {{ item }}
+                            {{ item|capitalize }}
                             <button type="button"
                                     onclick="removeIngredient('{{ item }}')"
                                     class="ingredient-remove">×</button>
@@ -170,8 +170,11 @@ function renderTags() {
 
     tagsDiv.innerHTML = currentIngredients.map(item => {
         const escaped = item.replace(/'/g, "\\'");
+        // Formate la première lettre en majuscule
+        const formattedItem = item.charAt(0).toUpperCase() + item.slice(1);
+
         return `<span class="ingredient-tag">
-            ${item}
+            ${formattedItem}
             <button type="button"
                     onclick="removeIngredient('${escaped}')"
                     class="ingredient-remove">×</button>
