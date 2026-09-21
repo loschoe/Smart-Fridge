@@ -20,5 +20,18 @@
       "oeuf",
       "poulet"
     ]
+  },
+  {
+    "user_id": "7b7c2f43-d9ab-48cf-9dca-aa830d74886c",
+    "ingredients": [
+      "oeuf",
+      "poulet",
+      "boeuf",
+      "beurre",
+      "fromage",
+      "lait",
+      "tomate",
+      "riz"
+    ]
   }
 ]

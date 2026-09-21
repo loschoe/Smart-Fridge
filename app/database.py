@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     usda_api_key: str | None = None
 
     model_config = SettingsConfigDict(
-        env_file="app/.env",
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore"
     )

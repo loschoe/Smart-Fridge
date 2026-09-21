@@ -4,5 +4,6 @@ __pycache__/
 .env
 *.db
 .pytest_cache/
-app/schema.sql
-debug.log
+/app/schema.sql
+app/*.log
+
