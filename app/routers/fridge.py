@@ -12,19 +12,20 @@ class FridgeUpdate(BaseModel):
 
 
 def _normalize_ingredients(ingredients: list[str]) -> list[str]:
-    """Normalize and deduplicate ingredient names without any network call."""
     normalized: list[str] = []
     seen: set[str] = set()
 
     for raw_item in ingredients:
         item = raw_item.strip().lower()
-        if not item or item in seen:
+        if not item:
             continue
-
+        if item in seen:
+            continue
         seen.add(item)
         normalized.append(item)
 
     return normalized
+
 
 
 @router.get("")
@@ -45,6 +46,7 @@ def get_user_fridge(user_id: str | None = Depends(get_current_user_optional)):
     return {"ingredients": ingredients}
 
 
+
 @router.post("")
 @router.post("/")
 async def update_fridge(
@@ -56,21 +58,19 @@ async def update_fridge(
 
     clean_list = _normalize_ingredients(data.ingredients)
 
-    try:
-        # 1. Supprimer l'ancien frigo de cet utilisateur dans Supabase
-        supabase.table("fridge_items").delete().eq("user_id", user_id).execute()
+    fridges = get_fridges()
+    user_fridge = next((f for f in fridges if f.get("user_id") == user_id), None)
 
-        # 2. Réinsérer les nouveaux ingrédients
-        if clean_list:
-            records = [
-                {"user_id": user_id, "ingredient": item} for item in clean_list
-            ]
-            supabase.table("fridge_items").insert(records).execute()
+    if user_fridge:
+        user_fridge["ingredients"] = clean_list
+    else:
+        fridges.append({
+            "user_id": user_id,
+            "ingredients": clean_list,
+        })
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Erreur Supabase : {str(e)}"
-        )
+    # Persistence no longer depends on USDA/TheMealDB availability.
+    save_fridges(fridges)
 
     return {
         "message": "Frigo mis à jour",
@@ -86,27 +86,16 @@ async def delete_ingredient(
     if not user_id:
         raise HTTPException(status_code=401, detail="Non authentifié")
 
-    clean_item = ingredient.strip().lower()
+    fridges = get_fridges()
+    user_fridge = next((f for f in fridges if f.get("user_id") == user_id), None)
 
-    try:
-        # Supprimer la ligne de cet ingrédient spécifique pour cet utilisateur
-        supabase.table("fridge_items").delete().eq(
-            "user_id", user_id
-        ).eq("ingredient", clean_item).execute()
-
-        # Récupérer la liste à jour
-        res = (
-            supabase.table("fridge_items")
-            .select("ingredient")
-            .eq("user_id", user_id)
-            .execute()
-        )
-        remaining = [row["ingredient"] for row in res.data] if res.data else []
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Erreur Supabase : {str(e)}"
-        )
+    if user_fridge and "ingredients" in user_fridge:
+        user_fridge["ingredients"] = [
+            item
+            for item in user_fridge["ingredients"]
+            if item.lower() != ingredient.lower()
+        ]
+        save_fridges(fridges)
 
     return {
         "message": f"'{ingredient}' supprimé",

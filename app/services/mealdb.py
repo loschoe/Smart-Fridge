@@ -54,7 +54,6 @@ async def _get_json(url: str, params: dict[str, str]) -> Optional[dict[str, Any]
 
 
 async def fetch_recipes_by_ingredient(ingredient: str) -> list[dict[str, Any]]:
-    """Return cached MealDB search results for an ingredient."""
     key = ingredient.strip().lower()
     if not key:
         return []
@@ -93,7 +92,6 @@ async def _fetch_recipe_details_uncached(recipe_id: str) -> Optional[MealDBRecip
 
 
 async def fetch_recipe_details(recipe_id: str) -> Optional[MealDBRecipe]:
-    """Fetch recipe details once and reuse them for suggestions/detail pages."""
     key = str(recipe_id).strip()
     if not key:
         return None
@@ -112,12 +110,12 @@ async def fetch_recipe_details(recipe_id: str) -> Optional[MealDBRecipe]:
     try:
         return await asyncio.shield(task)
     finally:
+        # 🔥 C’est ici que ton fichier était cassé
         if _detail_inflight.get(key) is task:
             _detail_inflight.pop(key, None)
 
 
 async def fetch_recipe_details_many(recipe_ids: list[str]) -> list[MealDBRecipe]:
-    """Fetch a small page of recipes concurrently, reusing the detail cache."""
     unique_ids = list(dict.fromkeys(str(recipe_id).strip() for recipe_id in recipe_ids))
     results = await asyncio.gather(
         *(fetch_recipe_details(recipe_id) for recipe_id in unique_ids if recipe_id),
@@ -132,7 +130,6 @@ async def fetch_recipe_details_many(recipe_ids: list[str]) -> list[MealDBRecipe]
 
 
 async def close_client() -> None:
-    """Close the shared HTTP client when the application shuts down."""
     global _async_client
 
     if _async_client is not None and not _async_client.is_closed:

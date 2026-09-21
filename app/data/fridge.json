@@ -22,11 +22,16 @@
     ]
   },
   {
-    "user_id": "922f3246-6176-47f6-9888-6d5439102567",
+    "user_id": "7b7c2f43-d9ab-48cf-9dca-aa830d74886c",
     "ingredients": [
-      "poulet",
       "oeuf",
-      "fromage"
+      "poulet",
+      "boeuf",
+      "beurre",
+      "fromage",
+      "lait",
+      "tomate",
+      "riz"
     ]
   }
 ]
