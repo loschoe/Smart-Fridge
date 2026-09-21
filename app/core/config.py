@@ -1,16 +1,15 @@
-import os
-from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    usda_api_key: str = os.getenv("USDA_API_KEY", "DEMO_KEY")
-    secret_key: str = os.getenv("SECRET_KEY", "super-secret-key-change-me")
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 1440  # 24h
+    supabase_url: str
+    supabase_key: str
+    secret_key: str | None = None
+    usda_api_key: str | None = None
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file="app/.env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
 settings = Settings()

@@ -1,14 +1,19 @@
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from supabase import create_client, Client
-from app.config import settings
 
-load_dotenv()
+class Settings(BaseSettings):
+    supabase_url: str
+    supabase_key: str
+    secret_key: str | None = None
+    usda_api_key: str | None = None
 
-SUPABASE_URL = settings.supabase_url or os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = settings.supabase_key or os.getenv("SUPABASE_KEY", "")
+    model_config = SettingsConfigDict(
+        env_file="app/.env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("SUPABASE_URL ou SUPABASE_KEY manquante")
+settings = Settings()
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Création du client Supabase
+supabase: Client = create_client(settings.supabase_url, settings.supabase_key)
