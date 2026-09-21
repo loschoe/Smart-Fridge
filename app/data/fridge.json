@@ -20,5 +20,13 @@
       "oeuf",
       "poulet"
     ]
+  },
+  {
+    "user_id": "922f3246-6176-47f6-9888-6d5439102567",
+    "ingredients": [
+      "poulet",
+      "oeuf",
+      "fromage"
+    ]
   }
 ]

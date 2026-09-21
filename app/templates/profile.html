@@ -15,7 +15,7 @@
             <p>Renseigne tes infos pour calculer tes besoins caloriques.</p>
         </div>
         <a href="/" class="btn-back">← Retour au Tableau de bord</a>
-        <!-- 🔄 Nouveau layout -->
+
         <div class="dashboard-grid">
 
             <!-- Mes informations -->
@@ -29,7 +29,7 @@
                     {% endif %}
                 </div>
 
-                <form action="/profile/" method="POST">
+                <form id="profile-form">
 
                     <div class="form-row">
 
@@ -226,5 +226,42 @@
 
         </div>
     </div>
+
+    <script>
+    document.getElementById('profile-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const payload = {
+            weight_kg: parseFloat(document.getElementById('weight_kg').value),
+            height_cm: parseFloat(document.getElementById('height_cm').value),
+            age: parseInt(document.getElementById('age').value),
+            gender: document.getElementById('gender').value,
+            activity_level: document.getElementById('activity_level').value,
+            goal: document.getElementById('goal').value
+        };
+
+        try {
+            const res = await fetch('/profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                alert("Erreur lors de la sauvegarde : " + (data.detail ? JSON.stringify(data.detail) : "Erreur serveur"));
+            }
+        } catch (err) {
+            console.error("Erreur réseau :", err);
+            alert("Erreur de connexion avec le serveur.");
+        }
+    });
+    </script>
 </body>
 </html>
