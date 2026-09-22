@@ -9,6 +9,7 @@ from app.routers.recipe_router import router as recipe_router
 from app.routers.profile import calculate_calories  
 from app.core.deps import get_current_user_optional
 from app.database import supabase
+from app.routers import journal
 
 app = FastAPI(title="Smart Fridge & Nutrition Coach")
 
@@ -31,6 +32,7 @@ app.include_router(profile.router)
 app.include_router(fridge.router)
 app.include_router(suggestions.router)
 app.include_router(recipe_router)
+app.include_router(journal.router)
 
 def format_profile_for_template(profile_data: dict | None) -> dict | None:
     """Helper pour mapper 'weight'/'height' et recalculer BMR/TDEE pour Jinja2"""

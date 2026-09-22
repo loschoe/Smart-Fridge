@@ -57,7 +57,6 @@ def normalize_ingredient(name: str) -> str:
     name = re.sub(r"[^a-z0-9\s-]", " ", name)
     name = re.sub(r"\s+", " ", name).strip()
 
-    # Quelques formes courantes
     replacements = {
         "minced beef": "beef",
         "ground beef": "beef",
@@ -79,16 +78,6 @@ def normalize_ingredient(name: str) -> str:
 
 
 def ingredient_matches(fridge_ingredient: str, recipe_ingredient: str) -> bool:
-    """
-    Détermine si un ingrédient de recette correspond à un ingrédient
-    disponible dans le frigo.
-
-    Exemple :
-        beef -> beef
-        beef -> ground beef
-        cheese -> cheddar cheese
-    """
-
     fridge = normalize_ingredient(fridge_ingredient)
     recipe = normalize_ingredient(recipe_ingredient)
 
@@ -117,13 +106,6 @@ def calculate_recipe_score(
     fridge_ingredients: list[str],
     recipe_ingredients: list[str],
 ) -> tuple[float, dict]:
-    """
-    Calcule un score de compatibilité frigo -> recette.
-
-    Plus le score est élevé, meilleure est la recette pour le contenu
-    actuel du frigo.
-    """
-
     fridge = list(dict.fromkeys(
         normalize_ingredient(item)
         for item in fridge_ingredients
@@ -175,7 +157,7 @@ def calculate_recipe_score(
         elif recipe_size <= 5:
             score += 20.0
         elif recipe_size <= 7:
-            score -= 25.0
+            score += -25.0
         else:
             score -= (recipe_size - 6) * 15.0
 
@@ -192,6 +174,7 @@ def calculate_recipe_score(
             score += 15.0
         elif recipe_size > 10:
             score -= (recipe_size - 10) * 5.0
+            
     if matched_count == fridge_count:
         score += 100.0
 
@@ -213,12 +196,8 @@ def calculate_recipe_score(
         "usage_ratio": fridge_usage_ratio,
     }
 
-async def _get_candidate_ids(fridge_ingredients: list[str]) -> list[str]:
-    """
-    Récupère l'union des recettes correspondant aux ingrédients
-    présents dans le frigo.
-    """
 
+async def _get_candidate_ids(fridge_ingredients: list[str]) -> list[str]:
     translated = [
         normalize_for_mealdb(
             translate_to_english(item).strip().lower()
@@ -260,13 +239,27 @@ async def _get_candidate_ids(fridge_ingredients: list[str]) -> list[str]:
     return candidate_ids
 
 
+def _categorize_meal_type(index: int) -> tuple[str, str]:
+    """
+    Associe un type et un libellé selon le rang de la carte dans la journée.
+    0 = Petit-déjeuner (Sucré)
+    1 = Déjeuner (Copieux)
+    2 = Dîner (Simple)
+    """
+    meal_map = {
+        0: ("breakfast", "Petit-Déjeuner (Sucré)"),
+        1: ("lunch", "Déjeuner (Copieux)"),
+        2: ("dinner", "Dîner (Simple)")
+    }
+    return meal_map.get(index % 3, ("meal", "Repas"))
+
+
 @router.get("/", response_model=SuggestionPage)
 async def get_recipe_suggestions(
     user_id: str = Depends(get_current_user),
     offset: int = Query(0, ge=0),
     limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE),
 ):
-
     res = (
         supabase
         .table("fridge_items")
@@ -415,10 +408,18 @@ async def get_recipe_suggestions(
         offset:offset + limit
     ]
 
-    response_recipes = [
-        item[4]
-        for item in page
-    ]
+    response_recipes = []
+    for idx, item in enumerate(page):
+        suggestion = item[4]
+        
+        # Attribution dynamique du type de repas (breakfast, lunch, dinner)
+        meal_type, meal_label = _categorize_meal_type(offset + idx)
+        
+        # Injection des attributs pour le frontend
+        suggestion.meal_type = meal_type
+        suggestion.meal_label = meal_label
+        
+        response_recipes.append(suggestion)
 
     return SuggestionPage(
         recipes=response_recipes,

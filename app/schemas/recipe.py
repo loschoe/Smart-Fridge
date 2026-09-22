@@ -1,5 +1,4 @@
 from typing import Any, Dict, List, Optional
-
 from pydantic import BaseModel, model_validator
 
 
@@ -56,6 +55,8 @@ class RecipeNutrients(BaseModel):
 class FullRecipeSuggestion(BaseModel):
     recipe: MealDBRecipe
     nutrients: RecipeNutrients
+    meal_type: Optional[str] = None   # 'breakfast', 'lunch', 'dinner'
+    meal_label: Optional[str] = None  # 'Petit-Déjeuner (Sucré)', etc.
 
 
 class SuggestionPage(BaseModel):

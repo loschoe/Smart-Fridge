@@ -3,13 +3,16 @@
 
 <div class="dashboard-container">
 
-    <div class="dashboard-header">
-        <h1 class="text-xl">Bonjour !</h1>
-        <p>Gère tes ingrédients et suis tes objectifs nutritionnels au même endroit.</p>
+    <div class="dashboard-header flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold">Bonjour !</h1>
+            <p class="text-gray-600">Gère tes ingrédients et suis tes objectifs nutritionnels au même endroit.</p>
+        </div>
     </div>
 
     <div class="dashboard-grid">
 
+        <!-- CARD 1 : PROFIL NUTRITIONNEL -->
         <div class="dashboard-card card-hover">
             <div>
                 <div class="dashboard-card-header">
@@ -50,6 +53,7 @@
             </div>
         </div>
 
+        <!-- CARD 2 : MON FRIGO -->
         <div class="dashboard-card card-hover">
             <div class="dashboard-card-header">
                 <h2>Mon Frigo</h2>
@@ -95,10 +99,89 @@
             <p id="fridge-status" class="fridge-status hidden"></p>
         </div>
 
+        <!-- CARD JOURNÉE NUTRITIONNELLE -->
+        <div class="dashboard-card card-hover md:col-span-2 mt-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">📅 Ma Journée Nutritionnelle</h2>
+                    <p class="text-xs text-gray-500">Suivi visuel de tes apports et repas sélectionnés</p>
+                </div>
+                <button type="button" onclick="resetDay()" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs py-2 px-4 rounded-xl border border-red-200 transition flex items-center gap-1.5">
+                    🔄 Réinitialiser la journée
+                </button>
+            </div>
+
+            <!-- MESSAGE DE SUCCÈS (Caché par défaut) -->
+            <div id="goal-reached-banner" class="hidden mb-4 p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md transition-all duration-500 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🎉</span>
+                    <div>
+                        <h4 class="font-bold text-sm">Objectifs de la journée atteints !</h4>
+                        <p class="text-xs text-emerald-100">Bravo, tu as validé tes besoins nutritionnels du jour.</p>
+                    </div>
+                </div>
+                <span class="text-xs bg-white/20 px-2.5 py-1 rounded-full font-semibold border border-white/30">100% Validé</span>
+            </div>
+
+
+            <!-- BARRES DE PROGRESSION DE NUTRITION -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <!-- Calories (Bleu) -->
+                <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                    <div class="flex justify-between items-center text-xs mb-1">
+                        <span class="font-semibold text-blue-700">Calories</span>
+                        <span id="label-calories" class="font-bold text-blue-900">0 / 0 kcal</span>
+                    </div>
+                    <div class="w-full bg-blue-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="bar-calories" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Protéines -->
+                <div class="p-3 bg-red-50/50 rounded-xl border border-red-100">
+                    <div class="flex justify-between items-center text-xs mb-1">
+                        <span class="font-semibold text-red-700">Protéines</span>
+                        <span id="label-protein" class="font-bold text-red-900">0 / 0g</span>
+                    </div>
+                    <div class="w-full bg-red-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="bar-protein" class="bg-red-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Glucides -->
+                <div class="p-3 bg-amber-50/50 rounded-xl border border-amber-100">
+                    <div class="flex justify-between items-center text-xs mb-1">
+                        <span class="font-semibold text-amber-700">Glucides</span>
+                        <span id="label-carbs" class="font-bold text-amber-900">0 / 0g</span>
+                    </div>
+                    <div class="w-full bg-amber-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="bar-carbs" class="bg-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Lipides -->
+                <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                    <div class="flex justify-between items-center text-xs mb-1">
+                        <span class="font-semibold text-emerald-700">Lipides</span>
+                        <span id="label-fat" class="font-bold text-emerald-900">0 / 0g</span>
+                    </div>
+                    <div class="w-full bg-emerald-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="bar-fat" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISTE DES REPAS (AVEC SUPPRESSION INDIVIDUELLE) -->
+            <div id="journal-meals-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+
+        <!-- CARD 4 : RECETTES RECOMMANDÉES -->
         <div class="dashboard-card card-hover md:col-span-2 mt-6">
             <div class="dashboard-card-header">
-                <h2>Recettes Recommandées</h2>
-                <span class="fridge-info">Adaptées à ton frigo et à tes besoins</span>
+                <h2>Recettes Recommandées pour la Journée</h2>
+                <span class="fridge-info">Adaptées à ton frigo et divisées par type de repas</span>
             </div>
 
             <div id="recipes-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -113,6 +196,104 @@
         </div>
     </div>
 </div>
+
+<!-- SCRIPTS DE GESTION DU JOURNAL ET RECOMMANDATIONS -->
+<script>
+// Load Journal Data & Calculate Remaining Macros
+async function loadJournalData() {
+    try {
+        const res = await fetch('/journal');
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        // Update Remaining Count Display
+        document.getElementById('rem-calories').innerText = `${data.remaining.calories} kcal`;
+        document.getElementById('rem-protein').innerText = `${data.remaining.protein_g} g`;
+        document.getElementById('rem-carbs').innerText = `${data.remaining.carbs_g} g`;
+        document.getElementById('rem-fat').innerText = `${data.remaining.fat_g} g`;
+
+        // Update Journal Meals Cards
+        const mealsContainer = document.getElementById('journal-meals-list');
+        const mealTypes = [
+            { key: 'breakfast', label: 'Petit-Déjeuner' },
+            { key: 'lunch', label: 'Déjeuner' },
+            { key: 'dinner', label: 'Dîner' }
+        ];
+
+        let html = '';
+        mealTypes.forEach(type => {
+            const meal = data.meals.find(m => m.meal_type === type.key);
+            if (meal) {
+                html += `
+                    <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-emerald-700 uppercase">${type.label}</span>
+                            <h4 class="font-bold text-gray-800 text-sm mt-1">${meal.title}</h4>
+                        </div>
+                        <div class="text-xs text-gray-600 mt-2 font-medium">
+                            🔥 ${meal.calories} kcal | 💪 ${meal.protein_g}g P
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 flex items-center justify-center text-center text-gray-400 text-xs italic">
+                        ${type.label} (Non sélectionné)
+                    </div>
+                `;
+            }
+        });
+
+        mealsContainer.innerHTML = html;
+    } catch (err) {
+        console.error("Erreur lors du chargement du journal :", err);
+    }
+}
+
+// Add Meal to Journal
+async function addToJournal(mealType, title, calories, protein, carbs, fat) {
+    try {
+        const res = await fetch('/journal/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                meal_type: mealType,
+                title: title,
+                calories: Math.round(calories),
+                protein_g: Math.round(protein * 10) / 10,
+                carbs_g: Math.round(carbs * 10) / 10,
+                fat_g: Math.round(fat * 10) / 10
+            })
+        });
+
+        if (res.ok) {
+            await loadJournalData();
+        } else {
+            alert("Erreur lors de l'ajout de la recette au journal.");
+        }
+    } catch (err) {
+        console.error("Erreur ajout journal :", err);
+    }
+}
+
+// Reset Day & Clear Fridge
+async function resetDay() {
+    try {
+        const res = await fetch('/journal/reset', { method: 'POST' });
+        if (res.ok) {
+            location.reload();
+        }
+    } catch (err) {
+        console.error("Erreur réinitialisation :", err);
+    }
+}
+
+// Load Journal on Page Ready
+document.addEventListener('DOMContentLoaded', () => {
+    loadJournalData();
+});
+</script>
 
 <script src="../static/JS/scripts.js"></script>
 
