@@ -13,11 +13,9 @@ from app.routers import journal
 
 app = FastAPI(title="Smart Fridge & Nutrition Coach")
 
-# Fichiers statiques et templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# Configuration CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,7 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclusion des routeurs
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(fridge.router)
@@ -46,11 +43,9 @@ def format_profile_for_template(profile_data: dict | None) -> dict | None:
     activity_level = profile_data.get("activity_level", "sedentary")
     goal = profile_data.get("goal", "maintain")
 
-    # Recalcul de BMR et TDEE pour le rendu HTML
     calc = calculate_calories(weight, height, age, gender, activity_level, goal)
     profile_data.update(calc)
 
-    # Mappage des variables attendues dans les templates Jinja2
     profile_data["weight_kg"] = weight
     profile_data["height_cm"] = height
 
@@ -66,12 +61,10 @@ def index(request: Request, user_id: str | None = Depends(get_current_user_optio
     if not user_id:
         return RedirectResponse(url="/login", status_code=302)
     
-    # Récupération du profil depuis Supabase
     profile_res = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
     raw_profile = profile_res.data[0] if profile_res.data else None
     user_profile = format_profile_for_template(raw_profile)
     
-    # Récupération du frigo depuis Supabase
     fridge_res = supabase.table("fridge_items").select("ingredient").eq("user_id", user_id).execute()
     ingredients = [row["ingredient"] for row in fridge_res.data] if fridge_res.data else []
 

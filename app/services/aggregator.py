@@ -13,10 +13,9 @@ async def aggregate_recipe_macros(
     nutrient_map: Optional[Mapping[str, Optional[USDAResponse]]] = None,
 ) -> Dict[str, Any]:
     """
-    Calculate recipe macros locally from USDA values.
-
-    When nutrient_map is provided, no extra USDA request is performed for
-    ingredients already prefetched for the current page.
+    Aggregate recipe macros using USDA nutrient data.
+    Kcal are recalculated using the scientific formula:
+        kcal = 4*protein + 4*carbs + 9*fat
     """
     recipe_title = recipe.title
     logger.debug("[AGG] Agrégation pour recette: %s", recipe_title)
@@ -42,7 +41,6 @@ async def aggregate_recipe_macros(
     for ingredient, normalized_name in zip(recipe.ingredients, normalized_names):
         result = nutrient_map.get(normalized_name)
 
-        # Compatibility fallback for callers that pass an incomplete map.
         if normalized_name not in nutrient_map:
             result = await fetch_usda_nutrients(usda_api_key, normalized_name)
 
@@ -54,10 +52,16 @@ async def aggregate_recipe_macros(
         ratio = weight_grams / 100.0
         macros = result.macros_per_100g
 
-        total_energy += macros.energy_kcal * ratio
-        total_protein += macros.protein_g * ratio
-        total_fat += macros.fat_g * ratio
-        total_carbs += macros.carbs_g * ratio
+        prot = macros.protein_g * ratio
+        fat = macros.fat_g * ratio
+        carbs = macros.carbs_g * ratio
+
+        energy = 4 * prot + 4 * carbs + 9 * fat
+
+        total_energy += energy
+        total_protein += prot
+        total_fat += fat
+        total_carbs += carbs
 
         valid_ingredients.append({
             "name": ingredient.name,
@@ -65,12 +69,25 @@ async def aggregate_recipe_macros(
             "calculated_grams": weight_grams,
             "usda_name": result.name,
             "macros": {
-                "energy_kcal": round(macros.energy_kcal * ratio, 2),
-                "protein_g": round(macros.protein_g * ratio, 2),
-                "fat_g": round(macros.fat_g * ratio, 2),
-                "carbs_g": round(macros.carbs_g * ratio, 2),
+                "energy_kcal": round(energy, 2),
+                "protein_g": round(prot, 2),
+                "fat_g": round(fat, 2),
+                "carbs_g": round(carbs, 2),
             },
         })
+
+    if not valid_ingredients:
+        logger.error("[AGG] Aucun ingrédient valide USDA pour la recette %s", recipe_title)
+        return {
+            "recipe_name": recipe_title,
+            "ingredients_used": [],
+            "total_macros": MacroBreakdown(
+                energy_kcal=0.0,
+                protein_g=0.0,
+                fat_g=0.0,
+                carbs_g=0.0,
+            ).model_dump(),
+        }
 
     return {
         "recipe_name": recipe_title,

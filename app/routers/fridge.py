@@ -31,7 +31,6 @@ def get_user_fridge(user_id: str | None = Depends(get_current_user_optional)):
     if not user_id:
         raise HTTPException(status_code=401, detail="Non authentifié")
 
-    # Récupération des ingrédients dans Supabase
     res = (
         supabase.table("fridge_items")
         .select("ingredient")
@@ -54,10 +53,8 @@ async def update_fridge(
 
     clean_list = _normalize_ingredients(data.ingredients)
 
-    # 1. On nettoie l'ancien frigo dans Supabase
     supabase.table("fridge_items").delete().eq("user_id", user_id).execute()
 
-    # 2. On insère les nouveaux éléments dans Supabase
     if clean_list:
         records = [{"user_id": user_id, "ingredient": item} for item in clean_list]
         supabase.table("fridge_items").insert(records).execute()
@@ -78,7 +75,6 @@ async def delete_ingredient(
 
     clean_ingredient = ingredient.strip().lower()
 
-    # 1. Suppression de l'élément spécifique dans Supabase
     (
         supabase.table("fridge_items")
         .delete()
@@ -87,7 +83,6 @@ async def delete_ingredient(
         .execute()
     )
 
-    # 2. Récupération de la liste restante pour le retour d'API
     res = (
         supabase.table("fridge_items")
         .select("ingredient")

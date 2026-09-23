@@ -6,7 +6,6 @@ from pydantic import BaseModel, EmailStr, ValidationError
 
 router = APIRouter(tags=["Auth"])
 
-# Petit helper pour valider l'email avec Pydantic
 def validate_email_address(email_str: str) -> str:
     class EmailModel(BaseModel):
         email: EmailStr
@@ -23,17 +22,14 @@ def validate_email_address(email_str: str) -> str:
 @router.post("/signup")
 @router.post("/auth/register")
 async def register(form_data: OAuth2PasswordRequestForm = Depends(), response: Response = None):
-    # Validation du format email
     raw_email = form_data.username.strip().lower()
     email = validate_email_address(raw_email)
     password = form_data.password
 
-    # Vérification si l'email existe déjà
     existing = supabase.table("users").select("id").eq("email", email).execute()
     if existing.data:
         raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
 
-    # Inscription
     try:
         new_user = supabase.table("users").insert({
             "email": email,
@@ -54,12 +50,10 @@ async def register(form_data: OAuth2PasswordRequestForm = Depends(), response: R
 @router.post("/token")
 @router.post("/auth/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), response: Response = None):
-    # Validation du format email
     raw_email = form_data.username.strip().lower()
     email = validate_email_address(raw_email)
     password = form_data.password
 
-    # Connexion
     res = supabase.table("users").select("*").eq("email", email).execute()
     if not res.data:
         raise HTTPException(status_code=400, detail="Identifiants incorrects.")

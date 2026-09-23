@@ -26,3 +26,4 @@ class MealDBRecipe(BaseModel):
                     })
             data["ingredients"] = items
         return data
+    

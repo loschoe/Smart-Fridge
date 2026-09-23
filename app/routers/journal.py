@@ -8,6 +8,7 @@ router = APIRouter(prefix="/journal", tags=["Journal"])
 
 class JournalEntry(BaseModel):
     meal_type: str
+    recipe_id: int
     title: str
     calories: int
     protein_g: float
@@ -20,7 +21,6 @@ async def get_journal(user_id: str | None = Depends(get_current_user_optional)):
     if not user_id:
         return {"meals": [], "totals": {}, "remaining": {}, "percentages": {}}
 
-    # 1. Récupérer le profil pour obtenir les objectifs
     prof_res = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
     profile = prof_res.data[0] if prof_res.data else {}
 
@@ -29,17 +29,14 @@ async def get_journal(user_id: str | None = Depends(get_current_user_optional)):
     target_carbs = float(profile.get("carbs_g", 200))
     target_fat = float(profile.get("fat_g", 65))
 
-    # 2. Récupérer les repas ajoutés
     journal_res = supabase.table("user_journal").select("*").eq("user_id", user_id).execute()
     meals = journal_res.data or []
 
-    # 3. Cumuler les totaux
     tot_cal = sum(m.get("calories", 0) for m in meals)
     tot_prot = sum(m.get("protein_g", 0) for m in meals)
     tot_carbs = sum(m.get("carbs_g", 0) for m in meals)
     tot_fat = sum(m.get("fat_g", 0) for m in meals)
 
-    # 4. Calcul des pourcentages pour les barres de progression
     percentages = {
         "calories": min(100, round((tot_cal / target_cal) * 100)) if target_cal else 0,
         "protein_g": min(100, round((tot_prot / target_prot) * 100)) if target_prot else 0,
@@ -66,6 +63,7 @@ async def add_to_journal(entry: JournalEntry, user_id: str | None = Depends(get_
 
     payload = {
         "user_id": str(user_id),
+        "recipe_id": int(entry.recipe_id),
         "meal_type": entry.meal_type,
         "title": entry.title,
         "calories": int(entry.calories),
@@ -82,7 +80,6 @@ async def delete_from_journal(entry_id: int, user_id: str | None = Depends(get_c
     if not user_id:
         raise HTTPException(status_code=401, detail="Non authentifié")
 
-    # Suppression ciblée par l'ID de la ligne
     res = supabase.table("user_journal").delete().eq("id", entry_id).eq("user_id", user_id).execute()
     return {"message": "Plat retiré du journal", "data": res.data}
 

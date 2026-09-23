@@ -41,8 +41,6 @@
             return;
         }
 
-        // On envoie les données sous forme de formulaire url-encoded
-        // L'email est transmis dans le champ 'username' attendu par OAuth2PasswordRequestForm
         const formData = new URLSearchParams();
         formData.append('username', emailInput);
         formData.append('password', passwordInput);
@@ -68,11 +66,9 @@
                 throw new Error(message);
             }
 
-            // Enregistrement du token dans les cookies et le localStorage
             document.cookie = `access_token=Bearer ${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
             localStorage.setItem('access_token', data.access_token);
             
-            // Redirection vers l'accueil
             window.location.href = '/';
 
         } catch (err) {

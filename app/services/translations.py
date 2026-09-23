@@ -1,5 +1,4 @@
 TRANSLATIONS = {
-    # Viandes / Poissons
     "poulet": "chicken",
     "oeuf": "egg",
     "œuf": "egg",
@@ -9,12 +8,10 @@ TRANSLATIONS = {
     "saumon": "salmon",
     "thon": "tuna",
     
-    # Produits laitiers
     "beurre": "butter",
     "fromage": "cheese",
     "lait": "milk",
     
-    # Féculents / Légumes
     "riz": "rice",
     "pates": "pasta",
     "pâtes": "pasta",
@@ -27,6 +24,5 @@ TRANSLATIONS = {
 }
 
 def translate_to_english(ingredient_fr: str) -> str:
-    # Convertit un aliment français vers anglais
     clean_item = ingredient_fr.strip().lower()
     return TRANSLATIONS.get(clean_item, clean_item)

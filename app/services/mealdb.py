@@ -1,8 +1,6 @@
 import asyncio
 from typing import Any, Optional
-
 import httpx
-
 from app.schemas.recipe import MealDBRecipe
 from app.utils.logger import logger
 
@@ -41,7 +39,6 @@ def _get_client() -> httpx.AsyncClient:
 
     return _async_client
 
-
 async def _get_json(url: str, params: dict[str, str]) -> Optional[dict[str, Any]]:
     async with _mealdb_semaphore:
         try:
@@ -51,7 +48,6 @@ async def _get_json(url: str, params: dict[str, str]) -> Optional[dict[str, Any]
         except (httpx.HTTPError, ValueError) as exc:
             logger.info("[MealDB] Requête indisponible (%s)", type(exc).__name__)
             return None
-
 
 async def fetch_recipes_by_ingredient(ingredient: str) -> list[dict[str, Any]]:
     key = ingredient.strip().lower()
@@ -71,7 +67,6 @@ async def fetch_recipes_by_ingredient(ingredient: str) -> list[dict[str, Any]]:
     _filter_cache[key] = meals
     return meals
 
-
 async def _fetch_recipe_details_uncached(recipe_id: str) -> Optional[MealDBRecipe]:
     data = await _get_json(
         f"{BASE_URL}/lookup.php",
@@ -89,7 +84,6 @@ async def _fetch_recipe_details_uncached(recipe_id: str) -> Optional[MealDBRecip
 
     _detail_cache[recipe_id] = recipe
     return recipe
-
 
 async def fetch_recipe_details(recipe_id: str) -> Optional[MealDBRecipe]:
     key = str(recipe_id).strip()
@@ -110,10 +104,8 @@ async def fetch_recipe_details(recipe_id: str) -> Optional[MealDBRecipe]:
     try:
         return await asyncio.shield(task)
     finally:
-        # 🔥 C’est ici que ton fichier était cassé
         if _detail_inflight.get(key) is task:
             _detail_inflight.pop(key, None)
-
 
 async def fetch_recipe_details_many(recipe_ids: list[str]) -> list[MealDBRecipe]:
     unique_ids = list(dict.fromkeys(str(recipe_id).strip() for recipe_id in recipe_ids))
@@ -127,7 +119,6 @@ async def fetch_recipe_details_many(recipe_ids: list[str]) -> list[MealDBRecipe]
         for result in results
         if isinstance(result, MealDBRecipe)
     ]
-
 
 async def close_client() -> None:
     global _async_client

@@ -20,7 +20,6 @@ def _write_json(filename: str, data: List[Dict[str, Any]]) -> None:
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-# Métiers JSON
 def get_users(): return _read_json("users.json")
 def save_users(users): _write_json("users.json", users)
 

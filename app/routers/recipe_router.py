@@ -1,8 +1,6 @@
 from pathlib import Path
-
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.templating import Jinja2Templates
-
 from app.core.config import settings
 from app.services.mealdb import fetch_recipe_details
 from app.services.aggregator import aggregate_recipe_macros

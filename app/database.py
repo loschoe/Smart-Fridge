@@ -14,6 +14,4 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
-
-# Création du client Supabase
 supabase: Client = create_client(settings.supabase_url, settings.supabase_key)

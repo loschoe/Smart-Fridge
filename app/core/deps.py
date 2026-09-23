@@ -2,12 +2,10 @@ from fastapi import Request, HTTPException, status, Depends
 from app.core.security import decode_access_token
 
 def get_current_user_optional(request: Request) -> str | None:
-    # Récupère le cookie access_token
     token = request.cookies.get("access_token")
     if not token:
         return None
     
-    # Si le token contient "Bearer ", on le nettoie
     if token.startswith("Bearer "):
         token = token.split(" ")[1]
         
