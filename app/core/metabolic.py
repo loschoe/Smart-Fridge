@@ -46,7 +46,6 @@ def compute_full_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     tdee = calculate_tdee(bmr, data["activity_level"])
     target_calories = calculate_target_calories(tdee, data["goal"])
     macros = calculate_macros(target_calories, data["weight_kg"])
-    
     return {
         **data,
         "bmr": round(bmr, 1),

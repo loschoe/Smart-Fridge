@@ -9,7 +9,6 @@ let hasMoreSuggestions = false;
 let suggestionsAbortController = null;
 let isLoadingMore = false;
 
-/* ------------------------------ Affichage des badges frigo ------------------------------ */
 function renderTags() {
     if (!tagsDiv) return;
     tagsDiv.dataset.ingredients = JSON.stringify(currentIngredients);
@@ -140,7 +139,6 @@ async function submitFridgeUpdate(newItemsList = null) {
     }
 }
 
-/* ------------------------------ Chargement du Journal (3 Plats) ------------------------------ */
 async function loadJournalData() {
     try {
         const res = await fetch('/journal');
@@ -156,7 +154,7 @@ async function loadJournalData() {
         updateProgressBar('carbs', data.totals.carbs_g, data.percentages.carbs_g, 'g');
         updateProgressBar('fat', data.totals.fat_g, data.percentages.fat_g, 'g');
 
-        // Check si tous les objectifs sont atteints (100% ou plus sur Calories + Protéines)
+        // Check si tous les objectifs sont atteints
         const banner = document.getElementById('goal-reached-banner');
         if (banner) {
             const p = data.percentages || {};
@@ -178,6 +176,9 @@ async function loadJournalData() {
                 const meal = currentJournalMeals[index];
 
                 if (meal) {
+                    // Récupère l'ID de la recette s'il existe dans l'objet meal
+                    const recipeId = meal.recipe_id || meal.id;
+
                     return `
                         <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 flex flex-col justify-between">
                             <div>
@@ -188,16 +189,22 @@ async function loadJournalData() {
                                     </button>
                                 </div>
                                 <h4 class="font-bold text-gray-800 text-sm line-clamp-1">${meal.title}</h4>
+                                <div class="text-xs text-gray-600 mt-1 font-medium">
+                                    <i class="fa-solid fa-fire-flame-curved"></i> ${meal.calories} kcal | <i class="fa-solid fa-dumbbell"></i> ${meal.protein_g}g P
+                                </div>
                             </div>
-                            <div class="text-xs text-gray-600 mt-2 font-medium">
-                                🔥 ${meal.calories} kcal | 💪 ${meal.protein_g}g P
-                            </div>
+                            
+                            <!-- Bouton Voir la recette -->
+                            <a href="/recipe/${encodeURIComponent(recipeId)}" 
+                               class="mt-3 block text-center w-full py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold rounded-lg transition">
+                                 Voir la recette
+                            </a>
                         </div>
                     `;
                 }
 
                 return `
-                    <div class="p-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center text-center text-gray-400 text-xs">
+                    <div class="p-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center text-center text-gray-400 text-xs min-h-[110px]">
                         <span class="font-semibold text-gray-500 uppercase text-[10px]">${label}</span>
                         <span class="italic text-[11px] mt-1">Vide</span>
                     </div>
@@ -228,7 +235,7 @@ function updateProgressBar(key, currentVal, percentage, unit) {
     }
 }
 
-async function addToJournal(title, calories, protein, carbs, fat) {
+async function addToJournal(recipe_id, title, calories, protein, carbs, fat) {
     if (currentJournalMeals.length >= 3) {
         alert("Tu as déjà sélectionné tes 3 plats pour aujourd'hui ! Supprime un plat pour en ajouter un autre.");
         return;
@@ -242,6 +249,7 @@ async function addToJournal(title, calories, protein, carbs, fat) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 meal_type: nextSlotKey,
+                recipe_id: recipe_id,
                 title: title,
                 calories: Math.round(calories),
                 protein_g: Math.round(protein * 10) / 10,
@@ -280,7 +288,6 @@ async function resetDay() {
     }
 }
 
-/* ------------------------------ Formulaire Frigo ------------------------------ */
 const fridgeForm = document.getElementById('fridge-form');
 if (fridgeForm) {
     fridgeForm.addEventListener('submit', async (e) => {
@@ -289,7 +296,6 @@ if (fridgeForm) {
     });
 }
 
-/* ------------------------------ Suggestions de Recettes ------------------------------ */
 async function loadRecipeSuggestions(reset = true) {
     const container = document.getElementById('recipes-container');
     const loadMoreBtn = document.getElementById('load-more-btn');
@@ -410,10 +416,10 @@ function renderRecipeGrid() {
                         </h3>
                         <div class="flex gap-2 text-xs text-gray-600 mt-2">
                             <span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-medium">
-                                🔥 ${Math.round(nutrients.calories || 0)} kcal
+                                <i class="fa-solid fa-fire-flame-curved"></i> ${Math.round(nutrients.calories || 0)} kcal
                             </span>
                             <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                                💪 ${Math.round(nutrients.protein_g || 0)}g prot
+                                <i class="fa-solid fa-dumbbell"></i> ${Math.round(nutrients.protein_g || 0)}g prot
                             </span>
                         </div>
                     </div>
@@ -445,7 +451,6 @@ function renderRecipeGrid() {
         `;
     }).join('');
 
-    // Attache proprement l'événement de clic à tous les boutons ajoutés
     document.querySelectorAll('.add-to-journal-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const index = e.currentTarget.getAttribute('data-index');
@@ -456,6 +461,7 @@ function renderRecipeGrid() {
             const nutrients = item.nutrients || {};
 
             addToJournal(
+                recipe.id,
                 recipe.title || 'Recette',
                 nutrients.calories || 0,
                 nutrients.protein_g || 0,
@@ -466,7 +472,6 @@ function renderRecipeGrid() {
     });
 }
 
-/* ------------------------------ Initialisation ------------------------------ */
 const loadMoreBtn = document.getElementById('load-more-btn');
 if (loadMoreBtn) {
     loadMoreBtn.addEventListener('click', () => {

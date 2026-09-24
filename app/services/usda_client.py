@@ -1,15 +1,10 @@
 import asyncio
 import time
 from typing import Optional
-
 import httpx
 from pydantic import BaseModel
-
 from app.utils.logger import logger
 
-
-# USDA FDC nutrient IDs retained for tests/integrations that use the official
-# nutrient identifiers instead of nutrient names.
 ENERGY_ID = 1008
 PROTEIN_ID = 1003
 FAT_ID = 1004
@@ -25,22 +20,16 @@ USDA_TIMEOUT = httpx.Timeout(
 USDA_CONCURRENCY = 8
 USDA_FAILURE_CACHE_TTL = 60.0
 
-
 class USDAMacros(BaseModel):
     energy_kcal: float = 0.0
     protein_g: float = 0.0
     fat_g: float = 0.0
     carbs_g: float = 0.0
 
-
 class USDAResponse(BaseModel):
     name: str
     macros_per_100g: USDAMacros
 
-
-# Nutrition data is stable enough for the lifetime of the application.
-# Failed lookups are cached only briefly so an unavailable upstream API
-# cannot be hammered on every page refresh.
 _usda_cache: dict[str, tuple[float, Optional[USDAResponse]]] = {}
 _usda_inflight: dict[str, asyncio.Task[Optional[USDAResponse]]] = {}
 _semaphore = asyncio.Semaphore(USDA_CONCURRENCY)
@@ -111,8 +100,6 @@ def _extract_macros(food: dict, fallback_name: str) -> USDAResponse:
             macros.fat_g = value
         elif nutrient_id == CARBS_ID:
             macros.carbs_g = value
-        # Keep the name-based fallback because USDA responses are not always
-        # identical between food datasets.
         elif "energy" in name and unit == "kcal":
             macros.energy_kcal = value
         elif "protein" in name:
@@ -126,7 +113,6 @@ def _extract_macros(food: dict, fallback_name: str) -> USDAResponse:
         name=food.get("description") or fallback_name,
         macros_per_100g=macros,
     )
-
 
 async def _fetch_usda_nutrients_uncached(
     api_key: str,
@@ -156,12 +142,9 @@ async def _fetch_usda_nutrients_uncached(
             return result
 
         except (httpx.HTTPError, ValueError) as exc:
-            # Do not dump exceptions/URLs for every ingredient: the UI can
-            # continue with the data that is available locally.
             logger.info("[USDA] Lookup indisponible pour '%s' (%s)", ingredient_name, type(exc).__name__)
             _usda_cache[cache_key] = (time.monotonic(), None)
             return None
-
 
 async def fetch_usda_nutrients(
     api_key: str,
@@ -214,7 +197,6 @@ async def prefetch_usda_nutrients(
         name: (result if isinstance(result, USDAResponse) else None)
         for name, result in zip(unique_names, results)
     }
-
 
 async def close_client() -> None:
     """Close the shared HTTP client when the application shuts down."""

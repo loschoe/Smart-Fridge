@@ -4,9 +4,7 @@ from app.core.config import settings
 from app.services.translations import translate_to_english
 from app.services.usda_client import fetch_usda_nutrients
 
-
 _VALIDATION_CACHE: dict[str, bool] = {}
-
 
 async def validate_ingredient_usda(ingredient: str) -> bool:
     """Optional USDA validation for callers that explicitly need it."""
@@ -22,7 +20,6 @@ async def validate_ingredient_usda(ingredient: str) -> bool:
     is_valid = result is not None
     _VALIDATION_CACHE[clean_item] = is_valid
     return is_valid
-
 
 async def calculate_recipe_total_nutrients(ingredients: list[str]) -> dict:
     """Calculate total nutrients for a list of ingredients without serial I/O."""

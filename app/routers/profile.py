@@ -14,13 +14,11 @@ class ProfileData(BaseModel):
     goal: str
 
 def calculate_calories(weight: float, height: float, age: int, gender: str, activity_level: str, goal: str):
-    # Calcul BMR (Mifflin-St Jeor)
     if gender == "male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
     else:
         bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
 
-    # Facteur d'activité
     activity_factors = {
         "sedentary": 1.2,
         "light": 1.375,
@@ -31,7 +29,6 @@ def calculate_calories(weight: float, height: float, age: int, gender: str, acti
     factor = activity_factors.get(activity_level, 1.2)
     tdee = bmr * factor
 
-    # Ajustement selon l'objectif
     goal_adjustments = {
         "loss": -500,
         "maintain": 0,
@@ -39,7 +36,6 @@ def calculate_calories(weight: float, height: float, age: int, gender: str, acti
     }
     target_calories = tdee + goal_adjustments.get(goal, 0)
 
-    # Répartition des macros (g)
     protein_g = weight * 2.0
     fat_g = weight * 1.0
     remaining_calories = target_calories - (protein_g * 4 + fat_g * 9)
@@ -98,7 +94,6 @@ async def save_profile(
             data.gender, data.activity_level, data.goal
         )
 
-        # Structure respectant les types exacts de la table Supabase
         profile_payload = {
             "user_id": str(user_id),
             "weight": float(data.weight_kg),

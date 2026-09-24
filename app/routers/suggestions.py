@@ -174,7 +174,7 @@ def calculate_recipe_score(
             score += 15.0
         elif recipe_size > 10:
             score -= (recipe_size - 10) * 5.0
-            
+
     if matched_count == fridge_count:
         score += 100.0
 
@@ -367,7 +367,10 @@ async def get_recipe_suggestions(
             nutrient_map=nutrient_map,
         )
 
-        total_macros = aggregated["total_macros"]
+        if not aggregated or "total_macros" not in aggregated:
+            continue
+
+        total_macros = aggregated["total_macros"] or {}
 
         nutrients = RecipeNutrients(
             calories=total_macros.get("energy_kcal", 0.0),
@@ -395,9 +398,9 @@ async def get_recipe_suggestions(
 
     suggestions.sort(
         key=lambda item: (
-            item[0],  
-            item[1],  
-            item[2], 
+            item[0],
+            item[1],
+            item[2],
             item[3],
         )
     )
@@ -411,14 +414,10 @@ async def get_recipe_suggestions(
     response_recipes = []
     for idx, item in enumerate(page):
         suggestion = item[4]
-        
-        # Attribution dynamique du type de repas (breakfast, lunch, dinner)
         meal_type, meal_label = _categorize_meal_type(offset + idx)
-        
-        # Injection des attributs pour le frontend
         suggestion.meal_type = meal_type
         suggestion.meal_label = meal_label
-        
+
         response_recipes.append(suggestion)
 
     return SuggestionPage(
