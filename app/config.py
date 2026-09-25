@@ -2,8 +2,11 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
+# Chargement explicite du .env situé à la racine du backend.
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
+# Configuration centrale de l’application.
+# Toutes les clés sensibles sont chargées depuis le .env
 class Settings(BaseSettings):
     supabase_url: str = os.getenv("SUPABASE_URL", "")
     supabase_key: str = os.getenv("SUPABASE_KEY", "")
@@ -17,4 +20,5 @@ class Settings(BaseSettings):
         extra="ignore"  
     )
 
+# Instance globale utilisée dans tout le backend.
 settings = Settings()

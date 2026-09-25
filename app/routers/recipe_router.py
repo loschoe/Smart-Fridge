@@ -8,10 +8,11 @@ from app.services.aggregator import aggregate_recipe_macros
 
 router = APIRouter(prefix="/recipe", tags=["Recipe Details"])
 
+# Localisation du dossier des templates HTML.
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-
+# Page de détail d’une recette : données MealDB + macros USDA agrégées.
 @router.get("/{recipe_id}")
 async def view_recipe_detail(recipe_id: str, request: Request):
     recipe_detail = await fetch_recipe_details(recipe_id)

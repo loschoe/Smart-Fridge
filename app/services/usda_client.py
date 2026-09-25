@@ -5,11 +5,13 @@ import httpx
 from pydantic import BaseModel
 from app.utils.logger import logger
 
+# Identifiants USDA pour les nutriments principaux.
 ENERGY_ID = 1008
 PROTEIN_ID = 1003
 FAT_ID = 1004
 CARBS_ID = 1005
 
+# Timeout agressif pour éviter les blocages USDA.
 USDA_TIMEOUT = httpx.Timeout(
     connect=2.0,
     read=4.0,
@@ -17,25 +19,29 @@ USDA_TIMEOUT = httpx.Timeout(
     pool=2.0,
 )
 
+# Contrainte de parallélisme pour éviter de saturer l’API USDA.
 USDA_CONCURRENCY = 8
 USDA_FAILURE_CACHE_TTL = 60.0
 
+# Structure normalisée des macros USDA pour 100 g.
 class USDAMacros(BaseModel):
     energy_kcal: float = 0.0
     protein_g: float = 0.0
     fat_g: float = 0.0
     carbs_g: float = 0.0
 
+# Réponse USDA normalisée.
 class USDAResponse(BaseModel):
     name: str
     macros_per_100g: USDAMacros
 
+# Caches internes pour limiter les appels USDA.
 _usda_cache: dict[str, tuple[float, Optional[USDAResponse]]] = {}
 _usda_inflight: dict[str, asyncio.Task[Optional[USDAResponse]]] = {}
 _semaphore = asyncio.Semaphore(USDA_CONCURRENCY)
 _async_client: Optional[httpx.AsyncClient] = None
 
-
+# Client HTTP partagé pour amortir les connexions.
 def _get_client() -> httpx.AsyncClient:
     global _async_client
 
@@ -50,7 +56,7 @@ def _get_client() -> httpx.AsyncClient:
 
     return _async_client
 
-
+# Lecture du cache USDA.
 def _get_cached(key: str) -> Optional[USDAResponse] | None:
     entry = _usda_cache.get(key)
     if entry is None:
@@ -66,7 +72,7 @@ def _get_cached(key: str) -> Optional[USDAResponse] | None:
     _usda_cache.pop(key, None)
     return None
 
-
+# Vérifie si une valeur (succès ou échec) est en cache.
 def _has_cached_value(key: str) -> bool:
     entry = _usda_cache.get(key)
     if entry is None:
@@ -82,7 +88,7 @@ def _has_cached_value(key: str) -> bool:
     _usda_cache.pop(key, None)
     return False
 
-
+# Extraction des macros USDA depuis la structure brute.
 def _extract_macros(food: dict, fallback_name: str) -> USDAResponse:
     macros = USDAMacros()
 
@@ -114,6 +120,7 @@ def _extract_macros(food: dict, fallback_name: str) -> USDAResponse:
         macros_per_100g=macros,
     )
 
+# Requête USDA brute (non-cachée).
 async def _fetch_usda_nutrients_uncached(
     api_key: str,
     ingredient_name: str,
@@ -146,6 +153,7 @@ async def _fetch_usda_nutrients_uncached(
             _usda_cache[cache_key] = (time.monotonic(), None)
             return None
 
+# API publique USDA avec cache + déduplication + concurrency control.
 async def fetch_usda_nutrients(
     api_key: str,
     ingredient_name: str,
@@ -173,7 +181,7 @@ async def fetch_usda_nutrients(
         if _usda_inflight.get(cleaned_name) is task:
             _usda_inflight.pop(cleaned_name, None)
 
-
+# Préchargement parallèle des ingrédients USDA.
 async def prefetch_usda_nutrients(
     api_key: str,
     ingredient_names: list[str],
@@ -198,6 +206,7 @@ async def prefetch_usda_nutrients(
         for name, result in zip(unique_names, results)
     }
 
+# Fermeture propre du client HTTP partagé.
 async def close_client() -> None:
     """Close the shared HTTP client when the application shuts down."""
     global _async_client

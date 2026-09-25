@@ -10,7 +10,8 @@ router = APIRouter(prefix="/fridge", tags=["Fridge"])
 class FridgeUpdate(BaseModel):
     ingredients: list[str]
 
-
+# Normalisation simple : trim, lowercase, suppression des doublons.
+# Permet de garder une base propre côté stockage.
 def _normalize_ingredients(ingredients: list[str]) -> list[str]:
     normalized: list[str] = []
     seen: set[str] = set()
@@ -24,7 +25,7 @@ def _normalize_ingredients(ingredients: list[str]) -> list[str]:
 
     return normalized
 
-
+# Récupère le frigo de l'utilisateur.
 @router.get("")
 @router.get("/")
 def get_user_fridge(user_id: str | None = Depends(get_current_user_optional)):
@@ -41,7 +42,8 @@ def get_user_fridge(user_id: str | None = Depends(get_current_user_optional)):
 
     return {"ingredients": ingredients}
 
-
+# Remplace entièrement le frigo de l'utilisateur.
+# On supprime tout puis on réinsère la liste normalisée.
 @router.post("")
 @router.post("/")
 async def update_fridge(
@@ -64,7 +66,7 @@ async def update_fridge(
         "ingredients": clean_list,
     }
 
-
+# Suppression d’un ingrédient spécifique.
 @router.delete("/{ingredient}")
 async def delete_ingredient(
     ingredient: str,

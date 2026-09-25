@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Modèle de configuration chargé depuis le fichier .env.
+# Centralise toutes les variables sensibles nécessaires à l'application.
 class Settings(BaseSettings):
     supabase_url: str
     supabase_key: str

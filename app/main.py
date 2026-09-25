@@ -11,11 +11,14 @@ from app.core.deps import get_current_user_optional
 from app.database import supabase
 from app.routers import journal
 
+# Application principale FastAPI.
 app = FastAPI(title="Smart Fridge & Nutrition Coach")
 
+# Fichiers statiques + templates Jinja2.
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
+# CORS permissif pour compatibilité front.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Enregistrement des routeurs.
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(fridge.router)
@@ -31,6 +35,7 @@ app.include_router(suggestions.router)
 app.include_router(recipe_router)
 app.include_router(journal.router)
 
+# Helper pour recalculer BMR/TDEE avant affichage Jinja2.
 def format_profile_for_template(profile_data: dict | None) -> dict | None:
     """Helper pour mapper 'weight'/'height' et recalculer BMR/TDEE pour Jinja2"""
     if not profile_data:

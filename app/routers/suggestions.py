@@ -25,10 +25,11 @@ router = APIRouter(prefix="/suggestions", tags=["Suggestions"])
 DEFAULT_PAGE_SIZE = 3
 MAX_PAGE_SIZE = 6
 
+# Cache interne pour éviter de recalculer les candidats MealDB
 _candidate_cache: dict[tuple[str, ...], list[str]] = {}
 MAX_CANDIDATE_CACHE_ENTRIES = 32
 
-
+# Normalisation légère pour les recherches MealDB
 def normalize_for_mealdb(name: str) -> str:
     """
     Normalise un ingrédient pour les recherches et comparaisons MealDB.
@@ -45,7 +46,7 @@ def normalize_for_mealdb(name: str) -> str:
 
     return replacements.get(name, name)
 
-
+# Normalisation avancée pour comparer frigo ↔ recette
 def normalize_ingredient(name: str) -> str:
     """
     Normalisation plus poussée pour comparer les ingrédients
@@ -76,7 +77,7 @@ def normalize_ingredient(name: str) -> str:
 
     return replacements.get(name, name)
 
-
+# Logique de matching frigo ↔ recette
 def ingredient_matches(fridge_ingredient: str, recipe_ingredient: str) -> bool:
     fridge = normalize_ingredient(fridge_ingredient)
     recipe = normalize_ingredient(recipe_ingredient)
@@ -101,7 +102,7 @@ def ingredient_matches(fridge_ingredient: str, recipe_ingredient: str) -> bool:
 
     return False
 
-
+# Score de compatibilité frigo ↔ recette
 def calculate_recipe_score(
     fridge_ingredients: list[str],
     recipe_ingredients: list[str],
@@ -196,7 +197,7 @@ def calculate_recipe_score(
         "usage_ratio": fridge_usage_ratio,
     }
 
-
+# Recherche des recettes candidates via MealDB (avec cache)
 async def _get_candidate_ids(fridge_ingredients: list[str]) -> list[str]:
     translated = [
         normalize_for_mealdb(
@@ -238,7 +239,7 @@ async def _get_candidate_ids(fridge_ingredients: list[str]) -> list[str]:
 
     return candidate_ids
 
-
+# Associe un type de repas selon la position dans la journée
 def _categorize_meal_type(index: int) -> tuple[str, str]:
     """
     Associe un type et un libellé selon le rang de la carte dans la journée.
@@ -253,7 +254,7 @@ def _categorize_meal_type(index: int) -> tuple[str, str]:
     }
     return meal_map.get(index % 3, ("meal", "Repas"))
 
-
+# Endpoint principal : suggestions de recettes
 @router.get("/", response_model=SuggestionPage)
 async def get_recipe_suggestions(
     user_id: str = Depends(get_current_user),

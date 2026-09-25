@@ -4,8 +4,10 @@ from app.core.config import settings
 from app.services.translations import translate_to_english
 from app.services.usda_client import fetch_usda_nutrients
 
+# Cache simple pour éviter de revalider plusieurs fois le même ingrédient.
 _VALIDATION_CACHE: dict[str, bool] = {}
 
+# Validation USDA optionnelle (utilisée par certains endpoints).
 async def validate_ingredient_usda(ingredient: str) -> bool:
     """Optional USDA validation for callers that explicitly need it."""
     clean_item = ingredient.strip().lower()
@@ -21,6 +23,8 @@ async def validate_ingredient_usda(ingredient: str) -> bool:
     _VALIDATION_CACHE[clean_item] = is_valid
     return is_valid
 
+# Calcul rapide des macros USDA pour une liste d’ingrédients.
+# Pas de parsing de mesures ici : on additionne les macros pour 100 g.
 async def calculate_recipe_total_nutrients(ingredients: list[str]) -> dict:
     """Calculate total nutrients for a list of ingredients without serial I/O."""
     totals = {

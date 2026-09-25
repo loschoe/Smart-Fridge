@@ -7,6 +7,7 @@ from app.utils.logger import logger
 
 BASE_URL = "https://www.themealdb.com/api/json/v1/1"
 
+# Timeout agressif pour éviter les blocages MealDB.
 MEALDB_TIMEOUT = httpx.Timeout(
     connect=2.0,
     read=4.0,
@@ -14,9 +15,11 @@ MEALDB_TIMEOUT = httpx.Timeout(
     pool=2.0,
 )
 
+# Contrainte de parallélisme pour éviter de saturer MealDB.
 MEALDB_CONCURRENCY = 6
 MAX_RECIPES_PER_INGREDIENT = 30
 
+# Caches internes pour limiter les appels MealDB.
 _filter_cache: dict[str, list[dict[str, Any]]] = {}
 _detail_cache: dict[str, MealDBRecipe] = {}
 _detail_inflight: dict[str, asyncio.Task[Optional[MealDBRecipe]]] = {}
@@ -24,7 +27,7 @@ _detail_inflight: dict[str, asyncio.Task[Optional[MealDBRecipe]]] = {}
 _mealdb_semaphore = asyncio.Semaphore(MEALDB_CONCURRENCY)
 _async_client: Optional[httpx.AsyncClient] = None
 
-
+# Client HTTP partagé pour amortir les connexions.
 def _get_client() -> httpx.AsyncClient:
     global _async_client
 
@@ -39,6 +42,7 @@ def _get_client() -> httpx.AsyncClient:
 
     return _async_client
 
+# Wrapper JSON avec gestion d’erreurs MealDB.
 async def _get_json(url: str, params: dict[str, str]) -> Optional[dict[str, Any]]:
     async with _mealdb_semaphore:
         try:
@@ -49,6 +53,7 @@ async def _get_json(url: str, params: dict[str, str]) -> Optional[dict[str, Any]
             logger.info("[MealDB] Requête indisponible (%s)", type(exc).__name__)
             return None
 
+# Recherche des recettes via filter.php (ingrédient → liste d’ID).
 async def fetch_recipes_by_ingredient(ingredient: str) -> list[dict[str, Any]]:
     key = ingredient.strip().lower()
     if not key:
@@ -67,6 +72,7 @@ async def fetch_recipes_by_ingredient(ingredient: str) -> list[dict[str, Any]]:
     _filter_cache[key] = meals
     return meals
 
+# Récupération détaillée via lookup.php (ID → recette complète).
 async def _fetch_recipe_details_uncached(recipe_id: str) -> Optional[MealDBRecipe]:
     data = await _get_json(
         f"{BASE_URL}/lookup.php",
@@ -85,6 +91,7 @@ async def _fetch_recipe_details_uncached(recipe_id: str) -> Optional[MealDBRecip
     _detail_cache[recipe_id] = recipe
     return recipe
 
+# Gestion du cache + inflight pour éviter les doublons de requêtes.
 async def fetch_recipe_details(recipe_id: str) -> Optional[MealDBRecipe]:
     key = str(recipe_id).strip()
     if not key:
@@ -107,6 +114,7 @@ async def fetch_recipe_details(recipe_id: str) -> Optional[MealDBRecipe]:
         if _detail_inflight.get(key) is task:
             _detail_inflight.pop(key, None)
 
+# Récupération parallèle de plusieurs recettes.
 async def fetch_recipe_details_many(recipe_ids: list[str]) -> list[MealDBRecipe]:
     unique_ids = list(dict.fromkeys(str(recipe_id).strip() for recipe_id in recipe_ids))
     results = await asyncio.gather(
@@ -120,6 +128,7 @@ async def fetch_recipe_details_many(recipe_ids: list[str]) -> list[MealDBRecipe]
         if isinstance(result, MealDBRecipe)
     ]
 
+# Fermeture propre du client HTTP partagé.
 async def close_client() -> None:
     global _async_client
 

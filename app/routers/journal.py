@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 router = APIRouter(prefix="/journal", tags=["Journal"])
 
+# Structure d'un plat ajouté au journal alimentaire.
 class JournalEntry(BaseModel):
     meal_type: str
     recipe_id: int
@@ -15,6 +16,7 @@ class JournalEntry(BaseModel):
     carbs_g: float
     fat_g: float
 
+# Récupère le journal alimentaire de l'utilisateur + calculs des totaux et objectifs.
 @router.get("")
 @router.get("/")
 async def get_journal(user_id: str | None = Depends(get_current_user_optional)):
@@ -56,6 +58,7 @@ async def get_journal(user_id: str | None = Depends(get_current_user_optional)):
         "percentages": percentages
     }
 
+# Ajoute un plat au journal alimentaire.
 @router.post("/add")
 async def add_to_journal(entry: JournalEntry, user_id: str | None = Depends(get_current_user_optional)):
     if not user_id:
@@ -75,6 +78,7 @@ async def add_to_journal(entry: JournalEntry, user_id: str | None = Depends(get_
     res = supabase.table("user_journal").insert(payload).execute()
     return {"message": "Plat ajouté au journal", "data": res.data}
 
+# Supprime un plat du journal.
 @router.delete("/{entry_id}")
 async def delete_from_journal(entry_id: int, user_id: str | None = Depends(get_current_user_optional)):
     if not user_id:
@@ -83,6 +87,7 @@ async def delete_from_journal(entry_id: int, user_id: str | None = Depends(get_c
     res = supabase.table("user_journal").delete().eq("id", entry_id).eq("user_id", user_id).execute()
     return {"message": "Plat retiré du journal", "data": res.data}
 
+# Réinitialise complètement le journal alimentaire.
 @router.post("/reset")
 async def reset_journal(user_id: str | None = Depends(get_current_user_optional)):
     if not user_id:

@@ -1,10 +1,14 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, model_validator
 
+# Représente un ingrédient MealDB sous forme normalisée.
+# "measure" reste volontairement brut : MealDB n'est pas cohérent sur les formats.
 class IngredientQuantity(BaseModel):
     name: str = Field(..., description="Nom de l'ingrédient")
     measure: str = Field(..., description="Quantité brute (ex: '200 g', '1 cup')")
 
+# Modèle MealDB unifié : les 20 paires strIngredientX / strMeasureX
+# sont aplaties dans une liste "ingredients".
 class MealDBRecipe(BaseModel):
     idMeal: str
     strMeal: str

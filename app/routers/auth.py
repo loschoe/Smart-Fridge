@@ -6,6 +6,8 @@ from pydantic import BaseModel, EmailStr, ValidationError
 
 router = APIRouter(tags=["Auth"])
 
+# Valide une adresse email via Pydantic.
+# Permet d'avoir un message d'erreur propre et cohérent.
 def validate_email_address(email_str: str) -> str:
     class EmailModel(BaseModel):
         email: EmailStr
@@ -19,6 +21,8 @@ def validate_email_address(email_str: str) -> str:
             detail="Format d'adresse email invalide (exemple requis : nom@domaine.com)."
         )
 
+# Inscription utilisateur.
+# Double décorateur pour supporter deux routes différentes.
 @router.post("/signup")
 @router.post("/auth/register")
 async def register(form_data: OAuth2PasswordRequestForm = Depends(), response: Response = None):
@@ -46,7 +50,7 @@ async def register(form_data: OAuth2PasswordRequestForm = Depends(), response: R
 
     return {"access_token": token, "token_type": "bearer", "message": f"Compte créé pour {email}"}
 
-
+# Connexion utilisateur.
 @router.post("/token")
 @router.post("/auth/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), response: Response = None):
@@ -70,7 +74,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), response: Resp
 
     return {"access_token": token, "token_type": "bearer"}
 
-
+# Déconnexion : suppression du cookie JWT.
 @router.post("/logout")
 @router.post("/auth/logout")
 async def logout(response: Response):

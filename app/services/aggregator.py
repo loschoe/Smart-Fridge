@@ -89,6 +89,7 @@ async def aggregate_recipe_macros(
             ).model_dump(),
         }
 
+# Résultat final : macros totales + détails par ingrédient.
     return {
         "recipe_name": recipe_title,
         "ingredients_used": valid_ingredients,

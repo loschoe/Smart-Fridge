@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from supabase import create_client, Client
 
+# Configuration centrale pour Supabase + clés sensibles.
 class Settings(BaseSettings):
     supabase_url: str
     supabase_key: str
@@ -13,5 +14,8 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+# Instance globale de configuration.
 settings = Settings()
+
+# Client Supabase partagé dans tout le backend.
 supabase: Client = create_client(settings.supabase_url, settings.supabase_key)

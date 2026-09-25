@@ -23,6 +23,7 @@ TRANSLATIONS = {
     "huile d'olive": "olive oil",
 }
 
+# l'API étant en anglais nous avons dev une traduction de certains éléments 
 def translate_to_english(ingredient_fr: str) -> str:
     clean_item = ingredient_fr.strip().lower()
     return TRANSLATIONS.get(clean_item, clean_item)

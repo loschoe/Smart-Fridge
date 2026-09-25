@@ -5,6 +5,7 @@ from app.database import supabase
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
+# Données envoyées par le client pour définir le profil métabolique.
 class ProfileData(BaseModel):
     weight_kg: float
     height_cm: float
@@ -13,6 +14,8 @@ class ProfileData(BaseModel):
     activity_level: str
     goal: str
 
+# Calcul complet du BMR, TDEE, objectif calorique et macros.
+# Version locale (tu as déjà une version centralisée ailleurs).
 def calculate_calories(weight: float, height: float, age: int, gender: str, activity_level: str, goal: str):
     if gender == "male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
@@ -49,7 +52,7 @@ def calculate_calories(weight: float, height: float, age: int, gender: str, acti
         "carbs_g": float(round(carbs_g, 1)),
         "fat_g": float(round(fat_g, 1))
     }
-
+# Récupère le profil utilisateur + recalcule les valeurs dérivées.
 @router.get("")
 @router.get("/")
 async def get_profile(user_id: str | None = Depends(get_current_user_optional)):
@@ -79,6 +82,7 @@ async def get_profile(user_id: str | None = Depends(get_current_user_optional)):
         
     return {}
 
+# Sauvegarde / mise à jour du profil utilisateur.
 @router.post("")
 @router.post("/")
 async def save_profile(

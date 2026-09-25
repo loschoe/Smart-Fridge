@@ -5,6 +5,8 @@ from app.utils.logger import logger
 
 BASE_URL = "https://www.themealdb.com/api/json/v1/1"
 
+# Wrapper sécurisé pour les requêtes MealDB.
+# Centralise la gestion des erreurs réseau / HTTP.
 async def safe_get(client: httpx.AsyncClient, url: str) -> Optional[dict]:
     try:
         resp = await client.get(url)
@@ -14,6 +16,8 @@ async def safe_get(client: httpx.AsyncClient, url: str) -> Optional[dict]:
         logger.error(f"[MealDB] safe_get error: {e}")
         return None
 
+# Recherche des recettes MealDB à partir d’un ingrédient.
+# Utilise filter.php puis lookup.php pour obtenir les détails complets.
 async def search_recipes_by_ingredient(ingredient: str) -> List[MealDBRecipe]:
     logger.debug(f"[MealDB] Recherche de recettes pour ingrédient: {ingredient}")
 
