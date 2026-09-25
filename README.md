@@ -148,7 +148,36 @@ Dans le cadre de ce projet, nous avons adopté une approche dynamique et respons
 - **Claude** (CSS & Optimisation) : Sollicité pour l'intégration CSS — parce qu'en 2026, plus personne ne monte un design complexe entièrement à la main ! — ainsi que pour la relecture, l'amélioration et l'optimisation de nos fonctions algorithmiques les plus critiques.
 
 ## 🧩 Démo
-[Ajouter le contenu de cette rubrique à la fin du projet]
+<div align="center">
+<img width="522" height="495" alt="Page de connexion"exion via e-mail et mot de passe" src="https://github.com/user-attachments/assets/345e1b23-eb38-425e-839b-6a85be677baa" /></div>
+- Validation des informations saisies </br>
+- Gestion des erreurs de connexion </br>
+- Accès sécurisé aux fonctionnalités de l'application </br> </br>
+ 
+--> Une interface simple et intuitive conçue pour offrir une expérience utilisateur fluide dès l'arrivée sur l'application. </br> </br> </br>
+
+
+<div align="center">
+  <img width="1042" height="1412" alt="Le dashboard principal" src="https://github.com/user-attachments/assets/91ac1235-5f2f-43d6-aae8-97843871a0af" /></div>
+- Vue d'ensemble des aliments stockés </br>
+- Suivi des dates de péremption </br>
+- Statistiques et indicateurs clés </br>
+- Accès rapide à la gestion des produits </br>
+- Navigation intuitive vers les différentes sections </br> </br>
+ 
+--> Le tableau de bord a été conçu pour fournir une vision claire et instantanée du contenu du réfrigérateur et faciliter la gestion quotidienne des stocks alimentaires. </br> </br>
+
+<div align="center">
+  <img width="913" height="1103" alt="image" src="https://github.com/user-attachments/assets/bb2c4e72-8bac-466e-a8cc-806745c7500c" /></div>
+- Affichage détaillé d'une recette </br>
+- Liste des ingrédients avec quantités associées </br>
+- Instructions de préparation étape par étape </br>
+- Informations nutritionnelles (calories, protéines, glucides, lipides) </br>
+- Catégorie et origine du plat </br>
+- Navigation rapide vers le tableau de bord </br> </br>
+
+--> Cette vue permet à l'utilisateur de passer directement de la gestion de ses aliments à leur utilisation grâce à des recettes adaptées aux ingrédients disponibles. </br>
+
 
 ## 👥 Licence & Collaborateurs
 * **Libre d'accès et d'apprentissage :** Vous êtes libres de consulter le code, de le forker et de proposer des améliorations.
